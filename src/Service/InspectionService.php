@@ -5,12 +5,13 @@ namespace Tourze\TrainSupervisorBundle\Service;
 use AppBundle\Entity\Supplier;
 use Doctrine\ORM\EntityManagerInterface;
 use Tourze\TrainSupervisorBundle\Entity\SupervisionInspection;
+use Tourze\TrainSupervisorBundle\Entity\SupervisionPlan;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionInspectionRepository;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionPlanRepository;
 
 /**
- * 监督检查服务
- * 负责监督检查的执行、结果记录和分析
+ * 检查服务
+ * 负责监督检查的创建、更新和管理
  */
 class InspectionService
 {
@@ -19,6 +20,94 @@ class InspectionService
         private readonly SupervisionInspectionRepository $inspectionRepository,
         private readonly SupervisionPlanRepository $planRepository
     ) {
+    }
+
+    /**
+     * 根据监督计划创建检查任务
+     */
+    public function createInspectionsFromPlan(SupervisionPlan $plan, \DateTime $date): array
+    {
+        $inspections = [];
+        
+        // 这里可以根据计划的监督范围和项目创建相应的检查任务
+        // 暂时返回空数组，具体业务逻辑可以后续实现
+        
+        return $inspections;
+    }
+
+    /**
+     * 获取计划中即将创建的检查任务（用于试运行模式）
+     */
+    public function getPlannedInspectionsFromPlan(SupervisionPlan $plan, \DateTime $date): array
+    {
+        $plannedInspections = [];
+        
+        // 模拟计划将要创建的检查任务
+        foreach ($plan->getSupervisionScope() as $scope) {
+            $plannedInspections[] = [
+                'type' => '现场检查',
+                'institution' => $scope,
+                'date' => $date->format('Y-m-d')
+            ];
+        }
+        
+        return $plannedInspections;
+    }
+
+    /**
+     * 创建检查任务
+     */
+    public function createInspection(array $inspectionData): SupervisionInspection
+    {
+        $inspection = new SupervisionInspection();
+        
+        // 设置基本信息
+        if (isset($inspectionData['plan'])) {
+            $inspection->setPlan($inspectionData['plan']);
+        }
+        if (isset($inspectionData['inspectionType'])) {
+            $inspection->setInspectionType($inspectionData['inspectionType']);
+        }
+        if (isset($inspectionData['inspectionDate'])) {
+            $inspection->setInspectionDate($inspectionData['inspectionDate']);
+        }
+        if (isset($inspectionData['inspector'])) {
+            $inspection->setInspector($inspectionData['inspector']);
+        }
+        
+        $this->entityManager->persist($inspection);
+        $this->entityManager->flush();
+        
+        return $inspection;
+    }
+
+    /**
+     * 更新检查任务
+     */
+    public function updateInspection(string $inspectionId, array $inspectionData): SupervisionInspection
+    {
+        $inspection = $this->inspectionRepository->find($inspectionId);
+        if (!$inspection) {
+            throw new \InvalidArgumentException("检查任务不存在: {$inspectionId}");
+        }
+
+        // 更新检查信息
+        if (isset($inspectionData['inspectionStatus'])) {
+            $inspection->setInspectionStatus($inspectionData['inspectionStatus']);
+        }
+        if (isset($inspectionData['overallScore'])) {
+            $inspection->setOverallScore($inspectionData['overallScore']);
+        }
+        if (isset($inspectionData['inspectionReport'])) {
+            $inspection->setInspectionReport($inspectionData['inspectionReport']);
+        }
+        if (isset($inspectionData['foundProblems'])) {
+            $inspection->setFoundProblems($inspectionData['foundProblems']);
+        }
+
+        $this->entityManager->flush();
+
+        return $inspection;
     }
 
     /**

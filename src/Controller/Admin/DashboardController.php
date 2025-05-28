@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TrainSupervisorBundle\Controller\Admin;
+namespace Tourze\TrainSupervisorBundle\Controller\Admin;
 
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -30,7 +30,7 @@ class DashboardController extends AbstractDashboardController
     #[Route('/admin/supervision', name: 'admin_supervision')]
     public function index(): Response
     {
-        return $this->redirect($this->adminUrlGenerator->setController(SupervisionPlanCrudController::class)->generateUrl());
+        return $this->redirect($this->adminUrlGenerator->setController(\Aqacms\TrainSupervisorBundle\Controller\Admin\SupervisionPlanCrudController::class)->generateUrl());
     }
 
     public function configureDashboard(): Dashboard
@@ -63,6 +63,12 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('人员管理');
         yield MenuItem::linkToCrud('监督员', 'fa fa-users', Supervisor::class);
+
+        yield MenuItem::section('学习统计');
+        yield MenuItem::linkToRoute('学习概览', 'fa fa-tachometer-alt', 'admin_learning_statistics_index');
+        yield MenuItem::linkToRoute('实时统计', 'fa fa-pulse', 'admin_learning_statistics_realtime');
+        yield MenuItem::linkToRoute('趋势分析', 'fa fa-chart-line', 'admin_learning_statistics_trends');
+        yield MenuItem::linkToRoute('统计报告', 'fa fa-file-chart-line', 'admin_learning_statistics_reports');
 
         yield MenuItem::section('数据分析');
         yield MenuItem::linkToRoute('统计分析', 'fa fa-chart-bar', 'admin_supervision_statistics');

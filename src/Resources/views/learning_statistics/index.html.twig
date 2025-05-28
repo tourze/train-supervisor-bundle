@@ -1,0 +1,253 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block page_title %}学习统计概览{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- 过滤条件 -->
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5>查询条件</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ path('admin_learning_statistics_index') }}">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">开始日期</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ filters.start_date|default('') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">结束日期</label>
+                            <input type="date" name="end_date" class="form-control" value="{{ filters.end_date|default('') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">机构</label>
+                            <select name="institution_id" class="form-control">
+                                <option value="">全部机构</option>
+                                {% for institution in by_institution %}
+                                    <option value="{{ institution.institution_id }}" 
+                                            {{ filters.institution_id == institution.institution_id ? 'selected' : '' }}>
+                                        {{ institution.institution_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">查询</button>
+                                <a href="{{ path('admin_learning_statistics_index') }}" class="btn btn-secondary">重置</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计概览 -->
+    {% if overview %}
+    <div class="col-12 mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">总报名人数</h5>
+                        <h2>{{ overview.enrollment.total|number_format }}</h2>
+                        <small>增长率: {{ overview.enrollment.growth_rate|number_format(2) }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">已完成学习</h5>
+                        <h2>{{ overview.completion.total|number_format }}</h2>
+                        <small>完成率: {{ overview.completion.rate|number_format(2) }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">当前在线</h5>
+                        <h2>{{ overview.online.current|number_format }}</h2>
+                        <small>峰值: {{ overview.online.peak|number_format }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">活跃机构</h5>
+                        <h2>{{ overview.institutions.active_count|number_format }}</h2>
+                        <small>总机构: {{ overview.institutions.total_count|number_format }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 机构排名 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>机构学习排名（前10名）</h5>
+            </div>
+            <div class="card-body">
+                {% if by_institution %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>机构名称</th>
+                                <th>报名人数</th>
+                                <th>完成人数</th>
+                                <th>完成率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for institution in by_institution %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <a href="{{ path('admin_learning_statistics_institution', {id: institution.institution_id}) }}">
+                                        {{ institution.institution_name }}
+                                    </a>
+                                </td>
+                                <td>{{ institution.enrolled_count|number_format }}</td>
+                                <td>{{ institution.completed_count|number_format }}</td>
+                                <td>
+                                    <span class="badge badge-{{ institution.completion_rate > 80 ? 'success' : (institution.completion_rate > 60 ? 'warning' : 'danger') }}">
+                                        {{ institution.completion_rate|number_format(1) }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">暂无数据</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 区域分布 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>区域分布统计</h5>
+            </div>
+            <div class="card-body">
+                {% if by_region %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>区域</th>
+                                <th>报名人数</th>
+                                <th>完成率</th>
+                                <th>机构数量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for region in by_region %}
+                            <tr>
+                                <td>{{ region.region }}</td>
+                                <td>{{ region.enrolled_count|number_format }}</td>
+                                <td>
+                                    <span class="badge badge-{{ region.completion_rate > 80 ? 'success' : (region.completion_rate > 60 ? 'warning' : 'danger') }}">
+                                        {{ region.completion_rate|number_format(1) }}%
+                                    </span>
+                                </td>
+                                <td>{{ region.institution_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">暂无数据</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 学习趋势 -->
+    {% if trends %}
+    <div class="col-12 mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>学习趋势（最近30天）</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="trendsChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 快捷操作 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="btn-group" role="group">
+            <a href="{{ path('admin_learning_statistics_realtime') }}" class="btn btn-outline-primary">
+                <i class="fas fa-pulse"></i> 实时数据
+            </a>
+            <a href="{{ path('admin_learning_statistics_trends') }}" class="btn btn-outline-info">
+                <i class="fas fa-chart-line"></i> 趋势分析
+            </a>
+            <a href="{{ path('admin_learning_statistics_reports') }}" class="btn btn-outline-success">
+                <i class="fas fa-file-chart-line"></i> 生成报告
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+{% if trends %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// 学习趋势图表
+const ctx = document.getElementById('trendsChart').getContext('2d');
+const trendsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [{% for trend in trends %}'{{ trend.period }}'{{ not loop.last ? ',' : '' }}{% endfor %}],
+        datasets: [
+            {
+                label: '报名人数',
+                data: [{% for trend in trends %}{{ trend.enrolled_count }}{{ not loop.last ? ',' : '' }}{% endfor %}],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.1
+            },
+            {
+                label: '完成人数',
+                data: [{% for trend in trends %}{{ trend.completed_count }}{{ not loop.last ? ',' : '' }}{% endfor %}],
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

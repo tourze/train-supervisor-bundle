@@ -76,4 +76,20 @@ class SupervisionPlanRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 查找指定日期需要执行的监督计划
+     */
+    public function findPlansToExecuteOnDate(\DateTime $date): array
+    {
+        return $this->createQueryBuilder('sp')
+            ->where('sp.planStartDate <= :date')
+            ->andWhere('sp.planEndDate >= :date')
+            ->andWhere('sp.planStatus = :status')
+            ->setParameter('date', $date)
+            ->setParameter('status', '执行中')
+            ->orderBy('sp.planStartDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

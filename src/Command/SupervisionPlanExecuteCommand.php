@@ -97,7 +97,7 @@ class SupervisionPlanExecuteCommand extends Command
      */
     private function executeSinglePlan($plan, \DateTime $date, bool $dryRun, SymfonyStyle $io): array
     {
-        $io->section(sprintf('执行监督计划: %s', $plan->getPlanTitle()));
+        $io->section(sprintf('执行监督计划: %s', $plan->getPlanName()));
 
         // 检查计划是否应该在指定日期执行
         if (!$this->planService->shouldExecuteOnDate($plan, $date)) {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Aqacms\TrainSupervisorBundle\Tests\Integration;
+namespace Tourze\TrainSupervisorBundle\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
 

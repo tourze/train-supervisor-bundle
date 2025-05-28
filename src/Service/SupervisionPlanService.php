@@ -184,7 +184,7 @@ class SupervisionPlanService
     /**
      * 取消监督计划
      */
-    public function cancelPlan(string $planId, string $reason = null): SupervisionPlan
+    public function cancelPlan(string $planId, ?string $reason = null): SupervisionPlan
     {
         $plan = $this->planRepository->find($planId);
         if (!$plan) {
@@ -198,5 +198,42 @@ class SupervisionPlanService
         $this->entityManager->flush();
 
         return $plan;
+    }
+
+    /**
+     * 根据ID获取监督计划
+     */
+    public function getPlanById(string $planId): ?SupervisionPlan
+    {
+        return $this->planRepository->find($planId);
+    }
+
+    /**
+     * 获取指定日期需要执行的监督计划
+     */
+    public function getPlansToExecuteOnDate(\DateTime $date): array
+    {
+        return $this->planRepository->findPlansToExecuteOnDate($date);
+    }
+
+    /**
+     * 检查计划是否应该在指定日期执行
+     */
+    public function shouldExecuteOnDate(SupervisionPlan $plan, \DateTime $date): bool
+    {
+        $startDate = $plan->getPlanStartDate();
+        $endDate = $plan->getPlanEndDate();
+        
+        return $date >= $startDate && $date <= $endDate && $plan->getPlanStatus() === '执行中';
+    }
+
+    /**
+     * 更新计划执行状态
+     */
+    public function updatePlanExecution(SupervisionPlan $plan, \DateTime $executionDate): void
+    {
+        // 更新计划的最后执行时间或相关状态
+        // 这里可以添加具体的业务逻辑
+        $this->entityManager->flush();
     }
 } 
