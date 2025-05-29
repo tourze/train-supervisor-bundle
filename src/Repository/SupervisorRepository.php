@@ -4,8 +4,7 @@ namespace Tourze\TrainSupervisorBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use DoctrineEnhanceBundle\Repository\CommonRepositoryAware;
-use SenboTrainingBundle\Entity\Supervisor;
+use Tourze\TrainSupervisorBundle\Entity\Supervisor;
 
 /**
  * @method Supervisor|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,8 +14,6 @@ use SenboTrainingBundle\Entity\Supervisor;
  */
 class SupervisorRepository extends ServiceEntityRepository
 {
-    use CommonRepositoryAware;
-
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Supervisor::class);
