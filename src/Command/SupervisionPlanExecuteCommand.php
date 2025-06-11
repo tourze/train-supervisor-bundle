@@ -47,7 +47,7 @@ class SupervisionPlanExecuteCommand extends Command
 
         try {
             $date = new \DateTime($dateStr);
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $io->error(sprintf('无效的日期格式: %s', $dateStr));
             return Command::FAILURE;
         }
@@ -86,7 +86,7 @@ class SupervisionPlanExecuteCommand extends Command
                 return Command::FAILURE;
             }
 
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $io->error(sprintf('执行过程中发生错误: %s', $e->getMessage()));
             return Command::FAILURE;
         }
