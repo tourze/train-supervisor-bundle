@@ -101,7 +101,7 @@ class SupervisionReportCommand extends Command
 
             return Command::SUCCESS;
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('生成报告时发生错误: %s', $e->getMessage()));
             return Command::FAILURE;
         }
@@ -114,7 +114,7 @@ class SupervisionReportCommand extends Command
     {
         try {
             $date = new \DateTime($dateStr);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('无效的日期格式: %s', $dateStr));
             return null;
         }
@@ -133,7 +133,7 @@ class SupervisionReportCommand extends Command
             $date = new \DateTime($dateStr);
             // 获取周一作为周开始日期
             $weekStart = (clone $date)->modify('monday this week');
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('无效的日期格式: %s', $dateStr));
             return null;
         }
@@ -156,7 +156,7 @@ class SupervisionReportCommand extends Command
             $date = new \DateTime($dateStr);
             $year = (int)$date->format('Y');
             $month = (int)$date->format('m');
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('无效的日期格式: %s', $dateStr));
             return null;
         }
@@ -184,7 +184,7 @@ class SupervisionReportCommand extends Command
         try {
             $startDate = new \DateTime($startDateStr);
             $endDate = new \DateTime($endDateStr);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error('无效的日期格式');
             return null;
         }
@@ -290,7 +290,7 @@ class SupervisionReportCommand extends Command
 
             $io->success(sprintf('报告已导出到: %s', $exportFile));
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('导出失败: %s', $e->getMessage()));
         }
     }

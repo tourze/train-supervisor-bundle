@@ -43,7 +43,7 @@ class LearningStatisticsWebController extends AbstractController
                 'total_institutions' => count($byInstitution),
             ]);
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->addFlash('error', '获取统计数据失败：' . $e->getMessage());
             
             return $this->render('@TrainSupervisor/learning_statistics/index.html.twig', [
@@ -76,7 +76,7 @@ class LearningStatisticsWebController extends AbstractController
                 'filters' => $filters,
             ]);
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->addFlash('error', '获取机构统计数据失败：' . $e->getMessage());
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
@@ -98,7 +98,7 @@ class LearningStatisticsWebController extends AbstractController
                 'filters' => $filters,
             ]);
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->addFlash('error', '获取实时数据失败：' . $e->getMessage());
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
@@ -122,7 +122,7 @@ class LearningStatisticsWebController extends AbstractController
                 'filters' => $filters,
             ]);
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->addFlash('error', '获取趋势数据失败：' . $e->getMessage());
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
@@ -151,7 +151,7 @@ class LearningStatisticsWebController extends AbstractController
                 'generated_at' => new \DateTime(),
             ]);
             
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->addFlash('error', '生成报告失败：' . $e->getMessage());
             return $this->redirectToRoute('admin_learning_statistics_index');
         }

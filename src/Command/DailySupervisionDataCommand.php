@@ -49,7 +49,7 @@ class DailySupervisionDataCommand extends Command
 
         try {
             $date = new \DateTime($dateStr);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('无效的日期格式: %s', $dateStr));
             return Command::FAILURE;
         }
@@ -79,7 +79,7 @@ class DailySupervisionDataCommand extends Command
             $io->success('日常监督数据处理完成！');
             return Command::SUCCESS;
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('处理过程中发生错误: %s', $e->getMessage()));
             return Command::FAILURE;
         }
@@ -246,7 +246,7 @@ class DailySupervisionDataCommand extends Command
             $io->success(sprintf('数据已导出到: %s', $exportFile));
             $io->text(sprintf('导出记录数: %d', count($data)));
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('导出失败: %s', $e->getMessage()));
         }
     }

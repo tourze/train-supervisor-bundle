@@ -76,7 +76,7 @@ class QualityAssessmentCommand extends Command
                     return $this->exportAssessments($startDateStr, $endDateStr, $institutionId, $exportFile, $io);
             }
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('执行过程中发生错误: %s', $e->getMessage()));
             return Command::FAILURE;
         }
@@ -96,7 +96,7 @@ class QualityAssessmentCommand extends Command
 
         try {
             $date = new \DateTime($dateStr);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('无效的日期格式: %s', $dateStr));
             return Command::FAILURE;
         }
@@ -128,7 +128,7 @@ class QualityAssessmentCommand extends Command
         try {
             $startDate = new \DateTime($startDateStr);
             $endDate = new \DateTime($endDateStr);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error('无效的日期格式');
             return Command::FAILURE;
         }
@@ -164,7 +164,7 @@ class QualityAssessmentCommand extends Command
                 // 模拟处理时间
                 usleep(100000); // 0.1秒
                 
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $failCount++;
                 $io->note(sprintf('机构 %s 评估失败: %s', $institution, $e->getMessage()));
             }
@@ -192,7 +192,7 @@ class QualityAssessmentCommand extends Command
                 $startDate = new \DateTime($startDateStr);
                 $endDate = new \DateTime($endDateStr);
                 $io->text(sprintf('分析期间: %s 至 %s', $startDate->format('Y-m-d'), $endDate->format('Y-m-d')));
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $io->error('无效的日期格式');
                 return Command::FAILURE;
             }
@@ -236,7 +236,7 @@ class QualityAssessmentCommand extends Command
             try {
                 $startDate = new \DateTime($startDateStr);
                 $endDate = new \DateTime($endDateStr);
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $io->error('无效的日期格式');
                 return Command::FAILURE;
             }
@@ -254,7 +254,7 @@ class QualityAssessmentCommand extends Command
             $this->exportToFile($data, $exportFile, $io);
             $io->success(sprintf('评估数据已导出到: %s', $exportFile));
             $io->text(sprintf('导出记录数: %d', count($data)));
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('导出失败: %s', $e->getMessage()));
             return Command::FAILURE;
         }
@@ -339,7 +339,7 @@ class QualityAssessmentCommand extends Command
         try {
             $this->exportToFile($statistics, $exportFile, $io);
             $io->success(sprintf('分析结果已导出到: %s', $exportFile));
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('导出分析结果失败: %s', $e->getMessage()));
         }
     }

@@ -106,7 +106,7 @@ class AnomalyDetectionCommand extends Command
 
             return Command::SUCCESS;
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('异常检测过程中发生错误: %s', $e->getMessage()));
             return Command::FAILURE;
         }
@@ -421,7 +421,7 @@ class AnomalyDetectionCommand extends Command
             $io->success(sprintf('异常报告已导出到: %s', $exportFile));
             $io->text(sprintf('导出异常数: %d', count($anomalies)));
 
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('导出失败: %s', $e->getMessage()));
         }
     }
