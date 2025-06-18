@@ -21,7 +21,9 @@ use Tourze\TrainSupervisorBundle\Service\SupervisorService;
 )]
 class DailySupervisionDataCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'train:supervision:daily-data';
+public function __construct(
         private readonly SupervisorService $supervisorService,
         private readonly ReportService $reportService,
     ) {
@@ -62,17 +64,17 @@ class DailySupervisionDataCommand extends Command
             $this->collectSupervisionStatistics($date, $io);
 
             // 检查异常数据
-            if ($checkAnomaly) {
+            if ((bool) $checkAnomaly) {
                 $this->checkAnomalyData($date, $io);
             }
 
             // 生成日报
-            if ($generateReport) {
+            if ((bool) $generateReport) {
                 $this->generateDailyReport($date, $io);
             }
 
             // 导出数据
-            if ($exportFile) {
+            if ((bool) $exportFile) {
                 $this->exportData($date, $exportFile, $io);
             }
 
@@ -145,7 +147,7 @@ class DailySupervisionDataCommand extends Command
 
         $anomalies = $this->supervisorService->getAnomalySupervisorData($startDate, $endDate);
 
-        if (empty($anomalies)) {
+        if ((bool) empty($anomalies)) {
             $io->success('未发现异常数据');
             return;
         }
@@ -223,7 +225,7 @@ class DailySupervisionDataCommand extends Command
         // 导出监督数据
         $data = $this->supervisorService->exportSupervisorData($startDate, $endDate);
 
-        if (empty($data)) {
+        if ((bool) empty($data)) {
             $io->warning('没有数据可导出');
             return;
         }

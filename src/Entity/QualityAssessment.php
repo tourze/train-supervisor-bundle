@@ -8,104 +8,60 @@ use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainSupervisorBundle\Repository\QualityAssessmentRepository;
 
 /**
  * 质量评估实体
  * 用于记录培训机构和课程的质量评估结果
  */
-#[AsPermission(title: '质量评估')]
 #[Exportable]
 #[ORM\Entity(repositoryClass: QualityAssessmentRepository::class)]
 #[ORM\Table(name: 'job_training_quality_assessment', options: ['comment' => '质量评估'])]
 class QualityAssessment implements \Stringable
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估类型')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估类型：机构评估、课程评估、教师评估'])]
     private string $assessmentType;
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估对象ID')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '评估对象ID'])]
     private string $targetId;
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估对象名称')]
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '评估对象名称'])]
     private string $targetName;
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估标准')]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '评估标准'])]
     private string $assessmentCriteria;
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估项目')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '评估项目'])]
     private array $assessmentItems = [];
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估分数')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '评估分数'])]
     private array $assessmentScores = [];
 
-    #[ExportColumn]
-    #[ListColumn(title: '总分', sorter: true)]
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, options: ['comment' => '总分'])]
     private float $totalScore = 0.0;
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估等级')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估等级：优秀、良好、合格、不合格'])]
     private string $assessmentLevel;
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估意见')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '评估意见'])]
     private array $assessmentComments = [];
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估人')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '评估人'])]
     private string $assessor;
 
-    #[ExportColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '评估日期')]
-    #[Filterable]
     #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '评估日期'])]
     private \DateTimeInterface $assessmentDate;
 
-    #[ExportColumn]
-    #[ListColumn(title: '评估状态')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估状态：进行中、已完成、已取消'])]
     private string $assessmentStatus = '进行中';
 
-    #[ExportColumn]
-    #[ListColumn(title: '备注')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
     private ?string $remarks = null;public function getId(): ?string
     {

@@ -333,7 +333,7 @@ class ReportService
         $recommendations = [];
 
         // 根据问题严重程度生成建议
-        if (isset($problemSummary['by_severity']['严重']) && $problemSummary['by_severity']['严重'] > 0) {
+        if ((bool) isset($problemSummary['by_severity']['严重']) && $problemSummary['by_severity']['严重'] > 0) {
             $recommendations[] = '发现严重问题，建议立即组织专项整改，加强现场监督检查。';
         }
 
@@ -349,7 +349,7 @@ class ReportService
         }
 
         // 默认建议
-        if (empty($recommendations)) {
+        if ((bool) empty($recommendations)) {
             $recommendations[] = '继续保持良好的监督管理水平，持续改进培训质量。';
         }
 
@@ -393,7 +393,7 @@ class ReportService
      */
     private function calculatePassRate(array $inspections): float
     {
-        if (empty($inspections)) {
+        if ((bool) empty($inspections)) {
             return 0.0;
         }
 
@@ -406,7 +406,7 @@ class ReportService
      */
     private function calculateExcellentRate(array $assessments): float
     {
-        if (empty($assessments)) {
+        if ((bool) empty($assessments)) {
             return 0.0;
         }
 
@@ -419,7 +419,7 @@ class ReportService
      */
     private function calculateResolutionRate(array $problems): float
     {
-        if (empty($problems)) {
+        if ((bool) empty($problems)) {
             return 0.0;
         }
 

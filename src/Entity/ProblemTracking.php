@@ -8,114 +8,64 @@ use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainSupervisorBundle\Repository\ProblemTrackingRepository;
 
 /**
  * 问题跟踪实体
  * 用于跟踪监督检查中发现的问题及其整改情况
  */
-#[AsPermission(title: '问题跟踪')]
 #[Exportable]
 #[ORM\Entity(repositoryClass: ProblemTrackingRepository::class)]
 #[ORM\Table(name: 'job_training_problem_tracking', options: ['comment' => '问题跟踪'])]
 class ProblemTracking implements \Stringable
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '监督检查')]
     #[ORM\ManyToOne(targetEntity: SupervisionInspection::class)]
     #[ORM\JoinColumn(nullable: false)]
     private SupervisionInspection $inspection;
 
-    #[ExportColumn]
-    #[ListColumn(title: '问题类型')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '问题类型：制度问题、管理问题、技术问题、安全问题'])]
     private string $problemType;
 
-    #[ExportColumn]
-    #[ListColumn(title: '问题描述')]
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '问题描述'])]
     private string $problemDescription;
 
-    #[ExportColumn]
-    #[ListColumn(title: '问题严重程度')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '问题严重程度：轻微、一般、严重、重大'])]
     private string $problemSeverity;
 
-    #[ExportColumn]
-    #[ListColumn(title: '整改措施')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '整改措施'])]
     private array $correctionMeasures = [];
 
-    #[ExportColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '整改期限')]
-    #[Filterable]
     #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '整改期限'])]
     private \DateTimeInterface $correctionDeadline;
 
-    #[ExportColumn]
-    #[ListColumn(title: '整改状态')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '整改状态：待整改、整改中、已整改、已验证、已关闭'])]
     private string $correctionStatus = '待整改';
 
-    #[ExportColumn]
-    #[ListColumn(title: '整改证据')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '整改证据'])]
     private ?array $correctionEvidence = null;
 
-    #[ExportColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '整改日期')]
-    #[Filterable]
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true, options: ['comment' => '整改日期'])]
     private ?\DateTimeInterface $correctionDate = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '验证结果')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '验证结果：通过、不通过、部分通过'])]
     private ?string $verificationResult = null;
 
-    #[ExportColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '验证日期')]
-    #[Filterable]
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true, options: ['comment' => '验证日期'])]
     private ?\DateTimeInterface $verificationDate = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '验证人')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '验证人'])]
     private ?string $verifier = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '责任人')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '责任人'])]
     private string $responsiblePerson;
 
-    #[ExportColumn]
-    #[ListColumn(title: '备注')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
     private ?string $remarks = null;public function getId(): ?string
     {

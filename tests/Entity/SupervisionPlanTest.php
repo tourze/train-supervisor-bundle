@@ -46,8 +46,8 @@ class SupervisionPlanTest extends TestCase
     public function testInspectionCollection(): void
     {
         $plan = new SupervisionPlan();
-        $startDate = new \DateTime('2024-01-01');
-        $endDate = new \DateTime('2024-12-31');
+        $startDate = new \DateTimeImmutable('2024-01-01');
+        $endDate = new \DateTimeImmutable('2024-12-31');
         
         $plan->setPlanStartDate($startDate);
         $plan->setPlanEndDate($endDate);
@@ -62,8 +62,8 @@ class SupervisionPlanTest extends TestCase
     public function testProgressCalculation(): void
     {
         $plan = new SupervisionPlan();
-        $startDate = new \DateTime('2024-01-01');
-        $endDate = new \DateTime('2024-12-31');
+        $startDate = new \DateTimeImmutable('2024-01-01');
+        $endDate = new \DateTimeImmutable('2024-12-31');
         
         $plan->setPlanStartDate($startDate);
         $plan->setPlanEndDate($endDate);
@@ -83,8 +83,8 @@ class SupervisionPlanTest extends TestCase
         // 设置必填字段
         $plan->setPlanName('测试计划');
         $plan->setPlanType('定期');
-        $plan->setPlanStartDate(new \DateTime('2024-01-01'));
-        $plan->setPlanEndDate(new \DateTime('2024-12-31'));
+        $plan->setPlanStartDate(new \DateTimeImmutable('2024-01-01'));
+        $plan->setPlanEndDate(new \DateTimeImmutable('2024-12-31'));
         $plan->setSupervisor('测试人员');
         
         $this->assertNotEmpty($plan->getPlanName());
@@ -98,8 +98,8 @@ class SupervisionPlanTest extends TestCase
     public function testDateValidation(): void
     {
         $plan = new SupervisionPlan();
-        $startDate = new \DateTime('2024-01-01');
-        $endDate = new \DateTime('2024-12-31');
+        $startDate = new \DateTimeImmutable('2024-01-01');
+        $endDate = new \DateTimeImmutable('2024-12-31');
         
         $plan->setPlanStartDate($startDate);
         $plan->setPlanEndDate($endDate);
@@ -176,15 +176,15 @@ class SupervisionPlanTest extends TestCase
         $plan = new SupervisionPlan();
         
         // 设置过去的日期
-        $pastDate = new \DateTime('-1 month');
+        $pastDate = new \DateTimeImmutable('-1 month');
         $plan->setPlanStartDate($pastDate);
         $plan->setPlanEndDate($pastDate);
         
         $this->assertTrue($plan->isExpired());
         
         // 设置未来的日期
-        $futureDate = new \DateTime('+1 month');
-        $plan->setPlanStartDate(new \DateTime());
+        $futureDate = new \DateTimeImmutable('+1 month');
+        $plan->setPlanStartDate(new \DateTimeImmutable());
         $plan->setPlanEndDate($futureDate);
         
         $this->assertFalse($plan->isExpired());

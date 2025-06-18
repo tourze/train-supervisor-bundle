@@ -39,8 +39,8 @@ class SupervisionPlanServiceTest extends TestCase
         $planData = [
             'planName' => '2024年安全培训监督计划',
             'planType' => '定期',
-            'planStartDate' => new \DateTime('2024-01-01'),
-            'planEndDate' => new \DateTime('2024-12-31'),
+            'planStartDate' => new \DateTimeImmutable('2024-01-01'),
+            'planEndDate' => new \DateTimeImmutable('2024-12-31'),
             'supervisionScope' => ['华北地区', '华东地区'],
             'supervisionItems' => ['课程质量', '师资水平'],
             'supervisor' => '张三',
@@ -94,8 +94,8 @@ class SupervisionPlanServiceTest extends TestCase
         $plan = new SupervisionPlan();
         $plan->setPlanName('测试计划');
         $plan->setPlanType('定期');
-        $plan->setPlanStartDate(new \DateTime('2024-01-01'));
-        $plan->setPlanEndDate(new \DateTime('2024-12-31'));
+        $plan->setPlanStartDate(new \DateTimeImmutable('2024-01-01'));
+        $plan->setPlanEndDate(new \DateTimeImmutable('2024-12-31'));
         $plan->setSupervisor('测试监督员');
         $plan->setPlanStatus('待执行');
 

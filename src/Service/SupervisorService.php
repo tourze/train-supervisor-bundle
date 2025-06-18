@@ -40,25 +40,25 @@ class SupervisorService
         }
 
         // 更新数据
-        if (isset($data['total_classroom_count'])) {
+        if ((bool) isset($data['total_classroom_count'])) {
             $supervisor->setTotalClassroomCount($data['total_classroom_count']);
         }
-        if (isset($data['new_classroom_count'])) {
+        if ((bool) isset($data['new_classroom_count'])) {
             $supervisor->setNewClassroomCount($data['new_classroom_count']);
         }
-        if (isset($data['daily_login_count'])) {
+        if ((bool) isset($data['daily_login_count'])) {
             $supervisor->setDailyLoginCount($data['daily_login_count']);
         }
-        if (isset($data['daily_learn_count'])) {
+        if ((bool) isset($data['daily_learn_count'])) {
             $supervisor->setDailyLearnCount($data['daily_learn_count']);
         }
-        if (isset($data['daily_cheat_count'])) {
+        if ((bool) isset($data['daily_cheat_count'])) {
             $supervisor->setDailyCheatCount($data['daily_cheat_count']);
         }
-        if (isset($data['face_detect_success_count'])) {
+        if ((bool) isset($data['face_detect_success_count'])) {
             $supervisor->setFaceDetectSuccessCount($data['face_detect_success_count']);
         }
-        if (isset($data['face_detect_fail_count'])) {
+        if ((bool) isset($data['face_detect_fail_count'])) {
             $supervisor->setFaceDetectFailCount($data['face_detect_fail_count']);
         }
 
@@ -413,7 +413,7 @@ class SupervisorService
         
         foreach ($supervisorIds as $supervisorId) {
             $supervisor = $this->supervisorRepository->find($supervisorId);
-            if ($supervisor) {
+            if ((bool) $supervisor) {
                 $this->entityManager->remove($supervisor);
                 $deletedCount++;
             }

@@ -9,96 +9,59 @@ use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionInspectionRepository;
 
 /**
  * 监督检查实体
  * 用于记录培训机构的监督检查过程和结果
  */
-#[AsPermission(title: '监督检查')]
 #[Exportable]
 #[ORM\Entity(repositoryClass: SupervisionInspectionRepository::class)]
 #[ORM\Table(name: 'job_training_supervision_inspection', options: ['comment' => '监督检查'])]
 class SupervisionInspection implements \Stringable
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '监督计划')]
     #[ORM\ManyToOne(targetEntity: SupervisionPlan::class)]
     #[ORM\JoinColumn(nullable: false)]
     private SupervisionPlan $plan;
 
-    #[ExportColumn]
-    #[ListColumn(title: '被检查机构')]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private Supplier $institution;
 
-    #[ExportColumn]
-    #[ListColumn(title: '检查类型')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '检查类型：现场检查、在线检查、专项检查'])]
     private string $inspectionType;
 
-    #[ExportColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '检查日期')]
-    #[Filterable]
     #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '检查日期'])]
     private \DateTimeInterface $inspectionDate;
 
-    #[ExportColumn]
-    #[ListColumn(title: '检查人')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '检查人'])]
     private string $inspector;
 
-    #[ExportColumn]
-    #[ListColumn(title: '检查项目')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '检查项目'])]
     private array $inspectionItems = [];
 
-    #[ExportColumn]
-    #[ListColumn(title: '检查结果')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '检查结果'])]
     private array $inspectionResults = [];
 
-    #[ExportColumn]
-    #[ListColumn(title: '发现问题')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '发现问题'])]
     private array $foundProblems = [];
 
-    #[ExportColumn]
-    #[ListColumn(title: '检查状态')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '检查状态：进行中、已完成、已取消'])]
     private string $inspectionStatus = '进行中';
 
-    #[ExportColumn]
-    #[ListColumn(title: '总体评分', sorter: true)]
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true, options: ['comment' => '总体评分'])]
     private ?float $overallScore = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '检查报告')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '检查报告'])]
     private ?string $inspectionReport = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '备注')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
     private ?string $remarks = null;public function getId(): ?string
     {

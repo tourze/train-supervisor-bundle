@@ -21,7 +21,9 @@ use Tourze\TrainSupervisorBundle\Service\QualityAssessmentService;
 )]
 class QualityAssessmentCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'train:supervision:quality-assessment';
+public function __construct(
         private readonly QualityAssessmentService $assessmentService,
     ) {
         parent::__construct();
@@ -187,7 +189,7 @@ class QualityAssessmentCommand extends Command
         $startDate = null;
         $endDate = null;
 
-        if ($startDateStr && $endDateStr) {
+        if ($startDateStr && (bool) $endDateStr) {
             try {
                 $startDate = new \DateTime($startDateStr);
                 $endDate = new \DateTime($endDateStr);
@@ -200,7 +202,7 @@ class QualityAssessmentCommand extends Command
             $io->text('分析所有评估数据');
         }
 
-        if ($institutionId) {
+        if ((bool) $institutionId) {
             $io->text(sprintf('指定机构: %s', $institutionId));
         }
 
@@ -210,7 +212,7 @@ class QualityAssessmentCommand extends Command
         $this->displayAssessmentStatistics($statistics, $io);
 
         // 导出分析结果
-        if ($exportFile) {
+        if ((bool) $exportFile) {
             $this->exportAnalysisResults($statistics, $exportFile, $io);
         }
 
@@ -232,7 +234,7 @@ class QualityAssessmentCommand extends Command
         $startDate = null;
         $endDate = null;
 
-        if ($startDateStr && $endDateStr) {
+        if ($startDateStr && (bool) $endDateStr) {
             try {
                 $startDate = new \DateTime($startDateStr);
                 $endDate = new \DateTime($endDateStr);
@@ -245,7 +247,7 @@ class QualityAssessmentCommand extends Command
         // 导出评估数据
         $data = $this->assessmentService->exportAssessments($startDate, $endDate, $institutionId);
 
-        if (empty($data)) {
+        if ((bool) empty($data)) {
             $io->warning('没有数据可导出');
             return Command::SUCCESS;
         }

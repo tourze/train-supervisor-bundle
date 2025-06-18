@@ -21,7 +21,9 @@ use Tourze\TrainSupervisorBundle\Service\ReportService;
 )]
 class SupervisionReportCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'train:supervision:report';
+public function __construct(
         private readonly ReportService $reportService,
     ) {
         parent::__construct();
@@ -89,13 +91,13 @@ class SupervisionReportCommand extends Command
             $this->displayReportSummary($report, $io);
 
             // 自动发布
-            if ($autoPublish) {
+            if ((bool) $autoPublish) {
                 $this->reportService->publishReport($report);
                 $io->success('报告已自动发布！');
             }
 
             // 导出报告
-            if ($exportFile) {
+            if ((bool) $exportFile) {
                 $this->exportReport($report, $exportFile, $io);
             }
 

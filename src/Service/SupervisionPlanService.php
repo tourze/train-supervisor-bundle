@@ -50,31 +50,31 @@ class SupervisionPlanService
             throw new \InvalidArgumentException("监督计划不存在: {$planId}");
         }
 
-        if (isset($planData['planName'])) {
+        if ((bool) isset($planData['planName'])) {
             $plan->setPlanName($planData['planName']);
         }
-        if (isset($planData['planType'])) {
+        if ((bool) isset($planData['planType'])) {
             $plan->setPlanType($planData['planType']);
         }
-        if (isset($planData['planStartDate'])) {
+        if ((bool) isset($planData['planStartDate'])) {
             $plan->setPlanStartDate($planData['planStartDate']);
         }
-        if (isset($planData['planEndDate'])) {
+        if ((bool) isset($planData['planEndDate'])) {
             $plan->setPlanEndDate($planData['planEndDate']);
         }
-        if (isset($planData['supervisionScope'])) {
+        if ((bool) isset($planData['supervisionScope'])) {
             $plan->setSupervisionScope($planData['supervisionScope']);
         }
-        if (isset($planData['supervisionItems'])) {
+        if ((bool) isset($planData['supervisionItems'])) {
             $plan->setSupervisionItems($planData['supervisionItems']);
         }
-        if (isset($planData['supervisor'])) {
+        if ((bool) isset($planData['supervisor'])) {
             $plan->setSupervisor($planData['supervisor']);
         }
-        if (isset($planData['planStatus'])) {
+        if ((bool) isset($planData['planStatus'])) {
             $plan->setPlanStatus($planData['planStatus']);
         }
-        if (isset($planData['remarks'])) {
+        if ((bool) isset($planData['remarks'])) {
             $plan->setRemarks($planData['remarks']);
         }
 
@@ -192,7 +192,7 @@ class SupervisionPlanService
         }
 
         $plan->setPlanStatus('已取消');
-        if ($reason) {
+        if ((bool) $reason) {
             $plan->setRemarks($plan->getRemarks() . "\n取消原因: " . $reason);
         }
         $this->entityManager->flush();

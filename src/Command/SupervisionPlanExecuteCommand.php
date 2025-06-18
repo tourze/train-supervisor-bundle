@@ -21,7 +21,9 @@ use Tourze\TrainSupervisorBundle\Service\SupervisionPlanService;
 )]
 class SupervisionPlanExecuteCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'train:supervision:plan:execute';
+public function __construct(
         private readonly SupervisionPlanService $planService,
         private readonly InspectionService $inspectionService,
     ) {
@@ -43,7 +45,7 @@ class SupervisionPlanExecuteCommand extends Command
         
         $planId = $input->getOption('plan-id');
         $dateStr = $input->getOption('date');
-        $dryRun = $input->getOption('dry-run');
+        $dryRun = (bool) $input->getOption('dry-run');
 
         try {
             $date = new \DateTime($dateStr);
@@ -55,12 +57,12 @@ class SupervisionPlanExecuteCommand extends Command
         $io->title('监督计划执行');
         $io->text(sprintf('执行日期: %s', $date->format('Y-m-d')));
         
-        if ($dryRun) {
+        if ((bool) $dryRun) {
             $io->note('试运行模式 - 不会实际创建检查任务');
         }
 
         try {
-            if ($planId) {
+            if ((bool) $planId) {
                 // 执行指定的监督计划
                 $plan = $this->planService->getPlanById($planId);
                 if (!$plan) {
@@ -74,7 +76,7 @@ class SupervisionPlanExecuteCommand extends Command
                 $result = $this->executeAllPlansForDate($date, $dryRun, $io);
             }
 
-            if ($result['success']) {
+            if ((bool) $result['success']) {
                 $io->success(sprintf(
                     '监督计划执行完成！共处理 %d 个计划，创建 %d 个检查任务',
                     $result['processed_plans'],
@@ -146,7 +148,7 @@ class SupervisionPlanExecuteCommand extends Command
         // 获取应该在指定日期执行的所有计划
         $plans = $this->planService->getPlansToExecuteOnDate($date);
         
-        if (empty($plans)) {
+        if ((bool) empty($plans)) {
             $io->info('没有需要执行的监督计划');
             return ['success' => true, 'processed_plans' => 0, 'created_inspections' => 0];
         }
@@ -158,7 +160,7 @@ class SupervisionPlanExecuteCommand extends Command
 
         foreach ($plans as $plan) {
             $result = $this->executeSinglePlan($plan, $date, $dryRun, $io);
-            if ($result['success']) {
+            if ((bool) $result['success']) {
                 $processedPlans += $result['processed_plans'];
                 $totalCreatedInspections += $result['created_inspections'];
             }

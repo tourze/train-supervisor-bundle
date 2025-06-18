@@ -62,16 +62,16 @@ class InspectionService
         $inspection = new SupervisionInspection();
         
         // 设置基本信息
-        if (isset($inspectionData['plan'])) {
+        if ((bool) isset($inspectionData['plan'])) {
             $inspection->setPlan($inspectionData['plan']);
         }
-        if (isset($inspectionData['inspectionType'])) {
+        if ((bool) isset($inspectionData['inspectionType'])) {
             $inspection->setInspectionType($inspectionData['inspectionType']);
         }
-        if (isset($inspectionData['inspectionDate'])) {
+        if ((bool) isset($inspectionData['inspectionDate'])) {
             $inspection->setInspectionDate($inspectionData['inspectionDate']);
         }
-        if (isset($inspectionData['inspector'])) {
+        if ((bool) isset($inspectionData['inspector'])) {
             $inspection->setInspector($inspectionData['inspector']);
         }
         
@@ -92,16 +92,16 @@ class InspectionService
         }
 
         // 更新检查信息
-        if (isset($inspectionData['inspectionStatus'])) {
+        if ((bool) isset($inspectionData['inspectionStatus'])) {
             $inspection->setInspectionStatus($inspectionData['inspectionStatus']);
         }
-        if (isset($inspectionData['overallScore'])) {
+        if ((bool) isset($inspectionData['overallScore'])) {
             $inspection->setOverallScore($inspectionData['overallScore']);
         }
-        if (isset($inspectionData['inspectionReport'])) {
+        if ((bool) isset($inspectionData['inspectionReport'])) {
             $inspection->setInspectionReport($inspectionData['inspectionReport']);
         }
-        if (isset($inspectionData['foundProblems'])) {
+        if ((bool) isset($inspectionData['foundProblems'])) {
             $inspection->setFoundProblems($inspectionData['foundProblems']);
         }
 
@@ -155,22 +155,22 @@ class InspectionService
             throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
         }
 
-        if (isset($results['inspectionResults'])) {
+        if ((bool) isset($results['inspectionResults'])) {
             $inspection->setInspectionResults($results['inspectionResults']);
         }
-        if (isset($results['foundProblems'])) {
+        if ((bool) isset($results['foundProblems'])) {
             $inspection->setFoundProblems($results['foundProblems']);
         }
-        if (isset($results['overallScore'])) {
+        if ((bool) isset($results['overallScore'])) {
             $inspection->setOverallScore($results['overallScore']);
         }
-        if (isset($results['inspectionReport'])) {
+        if ((bool) isset($results['inspectionReport'])) {
             $inspection->setInspectionReport($results['inspectionReport']);
         }
-        if (isset($results['inspectionStatus'])) {
+        if ((bool) isset($results['inspectionStatus'])) {
             $inspection->setInspectionStatus($results['inspectionStatus']);
         }
-        if (isset($results['remarks'])) {
+        if ((bool) isset($results['remarks'])) {
             $inspection->setRemarks($results['remarks']);
         }
 
@@ -190,7 +190,7 @@ class InspectionService
         }
 
         $results = $inspection->getInspectionResults();
-        if (empty($results)) {
+        if ((bool) empty($results)) {
             return 0.0;
         }
 

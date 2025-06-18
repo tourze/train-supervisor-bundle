@@ -4,29 +4,21 @@ namespace Tourze\TrainSupervisorBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainSupervisorBundle\Repository\SupervisorRepository;
 
-#[AsPermission(title: '监管明细')]
 #[Exportable]
 #[ORM\Entity(repositoryClass: SupervisorRepository::class)]
 #[ORM\Table(name: 'job_training_supervisor', options: ['comment' => '监管明细'])]
 #[ORM\UniqueConstraint(name: 'job_training_supervisor_idx_uniq', columns: ['supplier_id', 'date'])]
-class Supervisor
+class Supervisor implements Stringable
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -34,60 +26,32 @@ class Supervisor
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ExportColumn]
-    #[IndexColumn]
-    #[Filterable]
-    #[ListColumn]
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '日期'])]
     private \DateTimeInterface $date;
 
-    #[ExportColumn]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(options: ['comment' => '总开班数'])]
     private int $totalClassroomCount = 0;
 
-    #[ExportColumn]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(options: ['comment' => '新开班数'])]
     private int $newClassroomCount = 0;
 
-    #[ExportColumn]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(options: ['comment' => '登录人数'])]
     private int $dailyLoginCount = 0;
 
-    #[ExportColumn]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(options: ['comment' => '学习人数'])]
     private int $dailyLearnCount = 0;
 
-    #[ExportColumn]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(options: ['comment' => '作弊次数'])]
     private int $dailyCheatCount = 0;
 
-    #[ExportColumn]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(options: ['comment' => '人脸识别成功次数'])]
     private int $faceDetectSuccessCount = 0;
 
-    #[ExportColumn]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(options: ['comment' => '人脸识别失败次数'])]
     private int $faceDetectFailCount = 0;
 
-    #[Filterable]
     #[IndexColumn]
-    #[ListColumn(order: 98, sorter: true)]
-    #[ExportColumn]
-    #[CreateTimeColumn]
     #[Groups(['restful_read', 'admin_curd', 'restful_read'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]#[UpdateTimeColumn]
-    #[ListColumn(order: 99, sorter: true)]
-    #[Groups(['restful_read', 'admin_curd', 'restful_read'])]
-    #[Filterable]
-    #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]public function getId(): ?string
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -186,4 +150,9 @@ class Supervisor
         $this->faceDetectFailCount = $faceDetectFailCount;
 
         return $this;
-    }}
+    }
+    public function __toString(): string
+    {
+        return (string) $this->id;
+    }
+}

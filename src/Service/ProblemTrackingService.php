@@ -135,7 +135,7 @@ class ProblemTrackingService
         }
 
         $problem->setCorrectionStatus('已关闭');
-        if ($remarks) {
+        if ((bool) $remarks) {
             $problem->setRemarks($remarks);
         }
 
@@ -240,7 +240,7 @@ class ProblemTrackingService
         ?\DateTimeInterface $endDate = null
     ): array {
         $criteria = [];
-        if ($startDate && $endDate) {
+        if ($startDate && (bool) $endDate) {
             $problems = $this->problemRepository->findByDateRange($startDate, $endDate);
         } else {
             $problems = $this->problemRepository->findAll();
@@ -284,7 +284,7 @@ class ProblemTrackingService
             }
 
             // 解决率统计
-            if (in_array($status, ['已验证', '已关闭'])) {
+            if ((bool) in_array($status, ['已验证', '已关闭'])) {
                 $resolvedCount++;
             }
         }
@@ -379,7 +379,7 @@ class ProblemTrackingService
         
         foreach ($problemIds as $problemId) {
             $problem = $this->problemRepository->find($problemId);
-            if ($problem) {
+            if ((bool) $problem) {
                 $problem->setCorrectionStatus($status);
                 $updatedCount++;
             }
@@ -398,7 +398,7 @@ class ProblemTrackingService
         
         foreach ($problemIds as $problemId) {
             $problem = $this->problemRepository->find($problemId);
-            if ($problem) {
+            if ((bool) $problem) {
                 $problem->setResponsiblePerson($responsiblePerson);
                 $updatedCount++;
             }
@@ -416,7 +416,7 @@ class ProblemTrackingService
         ?\DateTimeInterface $endDate = null,
         array $filters = []
     ): array {
-        if ($startDate && $endDate) {
+        if ($startDate && (bool) $endDate) {
             $problems = $this->problemRepository->findByDateRange($startDate, $endDate, $filters);
         } else {
             $problems = $this->problemRepository->findBy($filters);

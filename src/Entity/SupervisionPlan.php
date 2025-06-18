@@ -9,82 +9,48 @@ use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\EasyAdmin\Attribute\Action\Exportable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionPlanRepository;
 
 /**
  * 监督计划实体
  * 用于管理培训监督计划的制定、执行和跟踪
  */
-#[AsPermission(title: '监督计划')]
 #[Exportable]
 #[ORM\Entity(repositoryClass: SupervisionPlanRepository::class)]
 #[ORM\Table(name: 'job_training_supervision_plan', options: ['comment' => '监督计划'])]
 class SupervisionPlan implements \Stringable
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ExportColumn]
-    #[ListColumn(title: '计划名称')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '计划名称'])]
     private string $planName;
 
-    #[ExportColumn]
-    #[ListColumn(title: '计划类型')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '计划类型：定期、专项、随机'])]
     private string $planType;
 
-    #[ExportColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '开始日期')]
-    #[Filterable]
     #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '计划开始日期'])]
     private \DateTimeInterface $planStartDate;
 
-    #[ExportColumn]
-    #[IndexColumn]
-    #[ListColumn(title: '结束日期')]
-    #[Filterable]
     #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '计划结束日期'])]
     private \DateTimeInterface $planEndDate;
 
-    #[ExportColumn]
-    #[ListColumn(title: '监督范围')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '监督范围'])]
     private array $supervisionScope = [];
 
-    #[ExportColumn]
-    #[ListColumn(title: '监督项目')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '监督项目'])]
     private array $supervisionItems = [];
 
-    #[ExportColumn]
-    #[ListColumn(title: '监督人')]
-    #[Filterable]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '监督人'])]
     private string $supervisor;
 
-    #[ExportColumn]
-    #[ListColumn(title: '计划状态')]
-    #[Filterable]
     #[IndexColumn]
-    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '计划状态：待执行、执行中、已完成、已取消'])]
     private string $planStatus = '待执行';
 
-    #[ExportColumn]
-    #[ListColumn(title: '备注')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
     private ?string $remarks = null;public function getId(): ?string
     {

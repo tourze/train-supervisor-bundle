@@ -125,7 +125,7 @@ class QualityAssessmentService
      */
     private function calculateTotalScore(array $scores): float
     {
-        if (empty($scores)) {
+        if ((bool) empty($scores)) {
             return 0.0;
         }
 

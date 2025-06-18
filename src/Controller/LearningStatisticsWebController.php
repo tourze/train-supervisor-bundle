@@ -173,7 +173,7 @@ class LearningStatisticsWebController extends AbstractController
         }
 
         // 默认时间范围：最近30天
-        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+        if ((bool) empty($filters['start_date']) && empty($filters['end_date'])) {
             $endDate = new \DateTime();
             $startDate = (clone $endDate)->modify('-30 days');
             $filters['start_date'] = $startDate->format('Y-m-d');

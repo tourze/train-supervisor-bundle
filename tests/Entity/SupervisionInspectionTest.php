@@ -25,7 +25,7 @@ class SupervisionInspectionTest extends TestCase
         $this->assertEquals('现场检查', $inspection->getInspectionType());
         
         // 测试检查日期
-        $date = new \DateTime('2024-01-01');
+        $date = new \DateTimeImmutable('2024-01-01');
         $inspection->setInspectionDate($date);
         $this->assertEquals($date, $inspection->getInspectionDate());
         
@@ -173,7 +173,7 @@ class SupervisionInspectionTest extends TestCase
     public function testDateLogic(): void
     {
         $inspection = new SupervisionInspection();
-        $date = new \DateTime('2024-01-01');
+        $date = new \DateTimeImmutable('2024-01-01');
         
         $inspection->setInspectionDate($date);
         $this->assertEquals($date, $inspection->getInspectionDate());
@@ -191,7 +191,7 @@ class SupervisionInspectionTest extends TestCase
         // 设置必填字段
         $inspection->setPlan($plan);
         $inspection->setInspectionType('现场检查');
-        $inspection->setInspectionDate(new \DateTime());
+        $inspection->setInspectionDate(new \DateTimeImmutable());
         $inspection->setInspector('测试人员');
         
         $this->assertNotNull($inspection->getPlan());
@@ -247,7 +247,7 @@ class SupervisionInspectionTest extends TestCase
         
         $inspection->setPlan($plan);
         $inspection->setInspectionType('现场检查');
-        $inspection->setInspectionDate(new \DateTime('2024-01-01'));
+        $inspection->setInspectionDate(new \DateTimeImmutable('2024-01-01'));
         
         // 由于__toString方法依赖institution属性，我们暂时跳过这个测试
         // 或者创建一个简单的机构对象

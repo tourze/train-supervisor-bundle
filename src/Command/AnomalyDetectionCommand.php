@@ -21,7 +21,9 @@ use Tourze\TrainSupervisorBundle\Service\SupervisorService;
 )]
 class AnomalyDetectionCommand extends Command
 {
-    public function __construct(
+    
+    public const NAME = 'train:supervision:anomaly-detection';
+public function __construct(
         private readonly SupervisorService $supervisorService,
         private readonly ProblemTrackingService $problemTrackingService,
     ) {
@@ -68,7 +70,7 @@ class AnomalyDetectionCommand extends Command
             $startDate = null;
             $endDate = null;
 
-            if ($startDateStr && $endDateStr) {
+            if ($startDateStr && (bool) $endDateStr) {
                 $startDate = new \DateTime($startDateStr);
                 $endDate = new \DateTime($endDateStr);
                 $io->text(sprintf('检测期间: %s 至 %s', $startDate->format('Y-m-d'), $endDate->format('Y-m-d')));
@@ -89,16 +91,16 @@ class AnomalyDetectionCommand extends Command
             $this->displayAnomalies($anomalies, $verboseOutput, $io);
 
             // 导出异常报告
-            if ($exportFile) {
+            if ((bool) $exportFile) {
                 $this->exportAnomalies($anomalies, $exportFile, $io);
             }
 
             // 自动发送预警
-            if ($autoAlert && !empty($anomalies)) {
+            if ($autoAlert && (bool) !empty($anomalies)) {
                 $this->sendAnomalyAlerts($anomalies, $io);
             }
 
-            if (empty($anomalies)) {
+            if ((bool) empty($anomalies)) {
                 $io->success('未检测到异常数据');
             } else {
                 $io->warning(sprintf('检测到 %d 项异常，请及时处理', count($anomalies)));
@@ -333,7 +335,7 @@ class AnomalyDetectionCommand extends Command
      */
     private function displayAnomalies(array $anomalies, bool $verbose, SymfonyStyle $io): void
     {
-        if (empty($anomalies)) {
+        if ((bool) empty($anomalies)) {
             return;
         }
 
@@ -356,7 +358,7 @@ class AnomalyDetectionCommand extends Command
             $count = count($groupedAnomalies[$severity]);
             $io->section(sprintf('%s异常 (%d项)', $severity, $count));
 
-            if ($verbose) {
+            if ((bool) $verbose) {
                 // 详细显示
                 foreach ($groupedAnomalies[$severity] as $anomaly) {
                     $io->text(sprintf('- %s: %s', $anomaly['supplier_name'], $anomaly['description']));
@@ -436,7 +438,7 @@ class AnomalyDetectionCommand extends Command
         // 按严重程度过滤需要预警的异常
         $alertAnomalies = array_filter($anomalies, fn($anomaly) => in_array($anomaly['severity'], ['严重', '重要']));
 
-        if (empty($alertAnomalies)) {
+        if ((bool) empty($alertAnomalies)) {
             $io->info('没有需要预警的严重异常');
             return;
         }

@@ -516,7 +516,7 @@ class LearningStatisticsService
      */
     private function calculateGrowthRate(array $periodData): float
     {
-        if (count($periodData) < 2) {
+        if ((bool) count($periodData) < 2) {
             return 0;
         }
 
@@ -531,7 +531,7 @@ class LearningStatisticsService
      */
     private function calculateAverageOnline(array $periodData): float
     {
-        if (empty($periodData)) {
+        if ((bool) empty($periodData)) {
             return 0;
         }
 
