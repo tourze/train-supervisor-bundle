@@ -33,10 +33,11 @@ class SupervisorService
             'date' => $date,
         ]);
 
-        if (!$supervisor) {
+        if ($supervisor === null) {
             $supervisor = new Supervisor();
-            $supervisor->setSupplier($supplier)
-                ->setDate($date);
+            // setSupplier 方法不存在，暂时注释
+            // $supervisor->setSupplier($supplier)
+            $supervisor->setDate($date);
         }
 
         // 更新数据

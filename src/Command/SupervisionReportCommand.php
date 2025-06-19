@@ -16,7 +16,7 @@ use Tourze\TrainSupervisorBundle\Service\ReportService;
  * 用于生成各类监督报告（日报、周报、月报、专项报告）
  */
 #[AsCommand(
-    name: 'train:supervision:report',
+    name: self::NAME,
     description: '生成监督报告'
 )]
 class SupervisionReportCommand extends Command

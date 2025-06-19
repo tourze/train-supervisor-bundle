@@ -16,12 +16,11 @@ use Tourze\TrainSupervisorBundle\Service\SupervisorService;
  * 用于检测监督数据中的异常情况并生成预警
  */
 #[AsCommand(
-    name: 'train:supervision:anomaly-detection',
+    name: self::NAME,
     description: '检测监督数据异常'
 )]
 class AnomalyDetectionCommand extends Command
 {
-    
     public const NAME = 'train:supervision:anomaly-detection';
 public function __construct(
         private readonly SupervisorService $supervisorService,

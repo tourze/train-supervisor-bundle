@@ -46,7 +46,7 @@ class SupervisionPlanService
     public function updateSupervisionPlan(string $planId, array $planData): SupervisionPlan
     {
         $plan = $this->planRepository->find($planId);
-        if (!$plan) {
+        if ($plan === null) {
             throw new \InvalidArgumentException("监督计划不存在: {$planId}");
         }
 
@@ -89,7 +89,7 @@ class SupervisionPlanService
     public function executeSupervisionPlan(string $planId): array
     {
         $plan = $this->planRepository->find($planId);
-        if (!$plan) {
+        if ($plan === null) {
             throw new \InvalidArgumentException("监督计划不存在: {$planId}");
         }
 
@@ -126,7 +126,7 @@ class SupervisionPlanService
     public function generatePlanReport(string $planId): array
     {
         $plan = $this->planRepository->find($planId);
-        if (!$plan) {
+        if ($plan === null) {
             throw new \InvalidArgumentException("监督计划不存在: {$planId}");
         }
 
@@ -171,7 +171,7 @@ class SupervisionPlanService
     public function completePlan(string $planId): SupervisionPlan
     {
         $plan = $this->planRepository->find($planId);
-        if (!$plan) {
+        if ($plan === null) {
             throw new \InvalidArgumentException("监督计划不存在: {$planId}");
         }
 
@@ -187,7 +187,7 @@ class SupervisionPlanService
     public function cancelPlan(string $planId, ?string $reason = null): SupervisionPlan
     {
         $plan = $this->planRepository->find($planId);
-        if (!$plan) {
+        if ($plan === null) {
             throw new \InvalidArgumentException("监督计划不存在: {$planId}");
         }
 

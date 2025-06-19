@@ -16,12 +16,11 @@ use Tourze\TrainSupervisorBundle\Service\QualityAssessmentService;
  * 用于执行培训质量评估任务
  */
 #[AsCommand(
-    name: 'train:supervision:quality-assessment',
+    name: self::NAME,
     description: '执行培训质量评估'
 )]
 class QualityAssessmentCommand extends Command
 {
-    
     public const NAME = 'train:supervision:quality-assessment';
 public function __construct(
         private readonly QualityAssessmentService $assessmentService,

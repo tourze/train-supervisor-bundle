@@ -16,12 +16,11 @@ use Tourze\TrainSupervisorBundle\Service\SupervisorService;
  * 用于收集、处理和分析日常监督数据
  */
 #[AsCommand(
-    name: 'train:supervision:daily-data',
+    name: self::NAME,
     description: '收集和处理日常监督数据'
 )]
 class DailySupervisionDataCommand extends Command
 {
-    
     public const NAME = 'train:supervision:daily-data';
 public function __construct(
         private readonly SupervisorService $supervisorService,

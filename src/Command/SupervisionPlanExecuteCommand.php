@@ -16,7 +16,7 @@ use Tourze\TrainSupervisorBundle\Service\SupervisionPlanService;
  * 用于自动执行监督计划，创建检查任务
  */
 #[AsCommand(
-    name: 'train:supervision:plan:execute',
+    name: self::NAME,
     description: '执行监督计划，创建检查任务'
 )]
 class SupervisionPlanExecuteCommand extends Command
