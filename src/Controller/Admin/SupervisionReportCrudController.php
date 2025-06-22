@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TrainSupervisorBundle\Controller\Admin;
+namespace Tourze\TrainSupervisorBundle\Controller\Admin;
 
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TrainSupervisorBundle\Controller\Admin;
+namespace Tourze\TrainSupervisorBundle\Controller\Admin;
 
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -57,7 +57,7 @@ class ProblemTrackingCrudController extends AbstractCrudController
                     '其他问题' => '其他问题'
                 ])
                 ->setRequired(true),
-            ChoiceField::new('severityLevel', '严重程度')
+            ChoiceField::new('problemSeverity', '严重程度')
                 ->setChoices([
                     '轻微' => '轻微',
                     '一般' => '一般',
@@ -129,7 +129,7 @@ class ProblemTrackingCrudController extends AbstractCrudController
                     '管理问题' => '管理问题',
                     '其他问题' => '其他问题'
                 ]))
-            ->add(ChoiceFilter::new('severityLevel', '严重程度')
+            ->add(ChoiceFilter::new('problemSeverity', '严重程度')
                 ->setChoices([
                     '轻微' => '轻微',
                     '一般' => '一般',

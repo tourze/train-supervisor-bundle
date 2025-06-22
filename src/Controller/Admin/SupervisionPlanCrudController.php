@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Aqacms\TrainSupervisorBundle\Controller\Admin;
+namespace Tourze\TrainSupervisorBundle\Controller\Admin;
 
-use Aqacms\TrainSupervisorBundle\Entity\SupervisionPlan;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -23,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use Symfony\Component\HttpFoundation\Response;
+use Tourze\TrainSupervisorBundle\Entity\SupervisionPlan;
 
 /**
  * 监督计划管理控制器
@@ -245,7 +245,7 @@ class SupervisionPlanCrudController extends AbstractCrudController
         $plan = $context->getEntity()->getInstance();
         
         if ($plan->getStatus() !== 'draft') {
-            $this->addFlash('error', '只能激活草稿状态的计划');
+            $this->addFlash('danger', '只能激活草稿状态的计划');
             return $this->redirect($context->getReferrer());
         }
 
@@ -264,7 +264,7 @@ class SupervisionPlanCrudController extends AbstractCrudController
         $plan = $context->getEntity()->getInstance();
         
         if ($plan->getStatus() !== 'active') {
-            $this->addFlash('error', '只能完成活跃状态的计划');
+            $this->addFlash('danger', '只能完成活跃状态的计划');
             return $this->redirect($context->getReferrer());
         }
 
@@ -284,7 +284,7 @@ class SupervisionPlanCrudController extends AbstractCrudController
         $plan = $context->getEntity()->getInstance();
         
         if (!in_array($plan->getStatus(), ['draft', 'active'])) {
-            $this->addFlash('error', '只能取消草稿或活跃状态的计划');
+            $this->addFlash('danger', '只能取消草稿或活跃状态的计划');
             return $this->redirect($context->getReferrer());
         }
 

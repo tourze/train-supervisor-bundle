@@ -57,15 +57,15 @@ public function __construct(
         $io->title('监督计划执行');
         $io->text(sprintf('执行日期: %s', $date->format('Y-m-d')));
         
-        if ((bool) $dryRun) {
+        if ($dryRun) {
             $io->note('试运行模式 - 不会实际创建检查任务');
         }
 
         try {
-            if ((bool) $planId) {
+            if ($planId !== null) {
                 // 执行指定的监督计划
                 $plan = $this->planService->getPlanById($planId);
-                if (!$plan) {
+                if ($plan === null) {
                     $io->error(sprintf('未找到ID为 %s 的监督计划', $planId));
                     return Command::FAILURE;
                 }
@@ -76,7 +76,7 @@ public function __construct(
                 $result = $this->executeAllPlansForDate($date, $dryRun, $io);
             }
 
-            if ((bool) $result['success']) {
+            if ($result['success']) {
                 $io->success(sprintf(
                     '监督计划执行完成！共处理 %d 个计划，创建 %d 个检查任务',
                     $result['processed_plans'],
@@ -148,7 +148,7 @@ public function __construct(
         // 获取应该在指定日期执行的所有计划
         $plans = $this->planService->getPlansToExecuteOnDate($date);
         
-        if ((bool) empty($plans)) {
+        if (empty($plans)) {
             $io->info('没有需要执行的监督计划');
             return ['success' => true, 'processed_plans' => 0, 'created_inspections' => 0];
         }
@@ -160,7 +160,7 @@ public function __construct(
 
         foreach ($plans as $plan) {
             $result = $this->executeSinglePlan($plan, $date, $dryRun, $io);
-            if ((bool) $result['success']) {
+            if ($result['success']) {
                 $processedPlans += $result['processed_plans'];
                 $totalCreatedInspections += $result['created_inspections'];
             }

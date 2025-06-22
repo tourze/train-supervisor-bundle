@@ -99,4 +99,19 @@ class QualityAssessmentRepository extends ServiceEntityRepository
 
         return $result ? (float) $result : 0.0;
     }
+
+    /**
+     * 按日期范围查找评估记录
+     */
+    public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('qa')
+            ->where('qa.assessmentDate >= :startDate')
+            ->andWhere('qa.assessmentDate <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('qa.assessmentDate', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

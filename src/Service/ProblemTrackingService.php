@@ -16,8 +16,7 @@ class ProblemTrackingService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ProblemTrackingRepository $problemRepository,
-    ) {
-    }
+    ) {}
 
     /**
      * 创建问题记录
@@ -80,7 +79,7 @@ class ProblemTrackingService
         if (!empty($measures)) {
             $problem->setCorrectionMeasures($measures);
         }
-        
+
         $problem->setCorrectionStatus('整改中');
         $this->entityManager->flush();
     }
@@ -180,8 +179,18 @@ class ProblemTrackingService
      */
     public function getUpcomingOverdueProblems(int $days = 3): array
     {
-        $deadline = new \DateTime("+{$days} days");
-        return $this->problemRepository->findUpcomingOverdueProblems($deadline);
+        // 使用基础的查询方法获取即将逾期的问题
+        $now = new \DateTime();
+        $futureDate = new \DateTime("+{$days} days");
+
+        return $this->problemRepository->createQueryBuilder('p')
+            ->where('p.correctionDeadline BETWEEN :now AND :futureDate')
+            ->andWhere('p.correctionStatus NOT IN (:completedStatuses)')
+            ->setParameter('now', $now)
+            ->setParameter('futureDate', $futureDate)
+            ->setParameter('completedStatuses', ['已验证', '已关闭'])
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -240,8 +249,14 @@ class ProblemTrackingService
         ?\DateTimeInterface $endDate = null
     ): array {
         $criteria = [];
-        if ($startDate && (bool) $endDate) {
-            $problems = $this->problemRepository->findByDateRange($startDate, $endDate);
+        if ($startDate !== null && $endDate !== null) {
+            // 使用基础查询构造器来实现日期范围查询
+            $problems = $this->problemRepository->createQueryBuilder('p')
+                ->where('p.discoveryDate BETWEEN :startDate AND :endDate')
+                ->setParameter('startDate', $startDate)
+                ->setParameter('endDate', $endDate)
+                ->getQuery()
+                ->getResult();
         } else {
             $problems = $this->problemRepository->findAll();
         }
@@ -284,7 +299,7 @@ class ProblemTrackingService
             }
 
             // 解决率统计
-            if ((bool) in_array($status, ['已验证', '已关闭'])) {
+            if (in_array($status, ['已验证', '已关闭'], true)) {
                 $resolvedCount++;
             }
         }
@@ -336,7 +351,7 @@ class ProblemTrackingService
     {
         $overdueProblems = $this->getOverdueProblems();
         $upcomingOverdueProblems = $this->getUpcomingOverdueProblems();
-        
+
         $reminders = [];
 
         // 逾期问题提醒
@@ -376,10 +391,10 @@ class ProblemTrackingService
     public function batchUpdateStatus(array $problemIds, string $status): int
     {
         $updatedCount = 0;
-        
+
         foreach ($problemIds as $problemId) {
             $problem = $this->problemRepository->find($problemId);
-            if ((bool) $problem) {
+            if ($problem !== null) {
                 $problem->setCorrectionStatus($status);
                 $updatedCount++;
             }
@@ -395,10 +410,10 @@ class ProblemTrackingService
     public function batchAssignResponsiblePerson(array $problemIds, string $responsiblePerson): int
     {
         $updatedCount = 0;
-        
+
         foreach ($problemIds as $problemId) {
             $problem = $this->problemRepository->find($problemId);
-            if ((bool) $problem) {
+            if ($problem !== null) {
                 $problem->setResponsiblePerson($responsiblePerson);
                 $updatedCount++;
             }
@@ -416,8 +431,20 @@ class ProblemTrackingService
         ?\DateTimeInterface $endDate = null,
         array $filters = []
     ): array {
-        if ($startDate && (bool) $endDate) {
-            $problems = $this->problemRepository->findByDateRange($startDate, $endDate, $filters);
+        if ($startDate !== null && $endDate !== null) {
+            // 使用基础查询方法
+            $qb = $this->problemRepository->createQueryBuilder('p')
+                ->where('p.discoveryDate BETWEEN :startDate AND :endDate')
+                ->setParameter('startDate', $startDate)
+                ->setParameter('endDate', $endDate);
+
+            // 应用过滤条件
+            foreach ($filters as $field => $value) {
+                $qb->andWhere("p.{$field} = :{$field}")
+                    ->setParameter($field, $value);
+            }
+
+            $problems = $qb->getQuery()->getResult();
         } else {
             $problems = $this->problemRepository->findBy($filters);
         }
@@ -441,4 +468,4 @@ class ProblemTrackingService
             'update_time' => $problem->getUpdateTime()?->format('Y-m-d H:i:s'),
         ], $problems);
     }
-} 
+}

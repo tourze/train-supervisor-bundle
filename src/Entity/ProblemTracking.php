@@ -7,14 +7,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainSupervisorBundle\Repository\ProblemTrackingRepository;
 
 /**
  * 问题跟踪实体
  * 用于跟踪监督检查中发现的问题及其整改情况
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: ProblemTrackingRepository::class)]
 #[ORM\Table(name: 'job_training_problem_tracking', options: ['comment' => '问题跟踪'])]
 class ProblemTracking implements \Stringable
@@ -30,34 +28,59 @@ class ProblemTracking implements \Stringable
     #[ORM\JoinColumn(nullable: false)]
     private SupervisionInspection $inspection;
 
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '问题标题'])]
+    private string $problemTitle;
+
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '问题类型'])]
     private string $problemType;
 
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '问题描述'])]
     private string $problemDescription;
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '问题严重程度'])]
     private string $problemSeverity;
+
+    #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '问题状态'], nullable: false)]
+    private string $problemStatus = '待处理';
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '发现日期'])]
+    private \DateTimeInterface $discoveryDate;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true, options: ['comment' => '预期解决日期'])]
+    private ?\DateTimeInterface $expectedResolutionDate = null;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true, options: ['comment' => '实际解决日期'])]
+    private ?\DateTimeInterface $actualResolutionDate = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '根因分析'])]
+    private ?string $rootCauseAnalysis = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '预防措施'])]
+    private ?string $preventiveMeasures = null;
 
     #[ORM\Column(type: Types::JSON, options: ['comment' => '整改措施'])]
     private array $correctionMeasures = [];
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '整改期限'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '整改期限'])]
     private \DateTimeInterface $correctionDeadline;
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '整改状态'], nullable: false)]
     private string $correctionStatus = '待整改';
 
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '整改证据'])]
     private ?array $correctionEvidence = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true, options: ['comment' => '整改日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true, options: ['comment' => '整改日期'])]
     private ?\DateTimeInterface $correctionDate = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '验证结果：通过、不通过、部分通过'])]
     private ?string $verificationResult = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true, options: ['comment' => '验证日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true, options: ['comment' => '验证日期'])]
     private ?\DateTimeInterface $verificationDate = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '验证人'])]
@@ -67,7 +90,9 @@ class ProblemTracking implements \Stringable
     private string $responsiblePerson;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
-    private ?string $remarks = null;public function getId(): ?string
+    private ?string $remarks = null;
+
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -80,6 +105,29 @@ class ProblemTracking implements \Stringable
     public function setInspection(SupervisionInspection $inspection): static
     {
         $this->inspection = $inspection;
+        return $this;
+    }
+
+    // Alias for EasyAdmin compatibility
+    public function getSupervisionInspection(): SupervisionInspection
+    {
+        return $this->inspection;
+    }
+
+    public function setSupervisionInspection(SupervisionInspection $inspection): static
+    {
+        $this->inspection = $inspection;
+        return $this;
+    }
+
+    public function getProblemTitle(): string
+    {
+        return $this->problemTitle;
+    }
+
+    public function setProblemTitle(string $problemTitle): static
+    {
+        $this->problemTitle = $problemTitle;
         return $this;
     }
 
@@ -113,6 +161,72 @@ class ProblemTracking implements \Stringable
     public function setProblemSeverity(string $problemSeverity): static
     {
         $this->problemSeverity = $problemSeverity;
+        return $this;
+    }
+
+    public function getProblemStatus(): string
+    {
+        return $this->problemStatus;
+    }
+
+    public function setProblemStatus(string $problemStatus): static
+    {
+        $this->problemStatus = $problemStatus;
+        return $this;
+    }
+
+    public function getDiscoveryDate(): \DateTimeInterface
+    {
+        return $this->discoveryDate;
+    }
+
+    public function setDiscoveryDate(\DateTimeInterface $discoveryDate): static
+    {
+        $this->discoveryDate = $discoveryDate;
+        return $this;
+    }
+
+    public function getExpectedResolutionDate(): ?\DateTimeInterface
+    {
+        return $this->expectedResolutionDate;
+    }
+
+    public function setExpectedResolutionDate(?\DateTimeInterface $expectedResolutionDate): static
+    {
+        $this->expectedResolutionDate = $expectedResolutionDate;
+        return $this;
+    }
+
+    public function getActualResolutionDate(): ?\DateTimeInterface
+    {
+        return $this->actualResolutionDate;
+    }
+
+    public function setActualResolutionDate(?\DateTimeInterface $actualResolutionDate): static
+    {
+        $this->actualResolutionDate = $actualResolutionDate;
+        return $this;
+    }
+
+    public function getRootCauseAnalysis(): ?string
+    {
+        return $this->rootCauseAnalysis;
+    }
+
+    public function setRootCauseAnalysis(?string $rootCauseAnalysis): static
+    {
+        $this->rootCauseAnalysis = $rootCauseAnalysis;
+        return $this;
+    }
+
+    public function getPreventiveMeasures(): ?string
+    {
+        return $this->preventiveMeasures;
+    }
+
+    public function setPreventiveMeasures(?string $preventiveMeasures): static
+    {
+        $this->preventiveMeasures = $preventiveMeasures;
         return $this;
     }
 
@@ -226,6 +340,17 @@ class ProblemTracking implements \Stringable
         return $this;
     }
 
+    // Alias methods for backward compatibility
+    public function getFoundDate(): \DateTimeInterface
+    {
+        return $this->discoveryDate;
+    }
+
+    public function getDeadline(): \DateTimeInterface
+    {
+        return $this->correctionDeadline;
+    }
+
     /**
      * 检查问题是否已整改
      */
@@ -271,7 +396,7 @@ class ProblemTracking implements \Stringable
         }
         $now = new \DateTime();
         $diff = $now->diff($this->correctionDeadline);
-        return $diff->invert ? -$diff->days : $diff->days;
+        return ($diff->invert === 1) ? -$diff->days : $diff->days;
     }
 
     /**
@@ -302,4 +427,4 @@ class ProblemTracking implements \Stringable
     {
         return sprintf('%s - %s', $this->problemType, substr($this->problemDescription, 0, 50));
     }
-} 
+}

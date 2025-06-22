@@ -7,14 +7,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainSupervisorBundle\Repository\QualityAssessmentRepository;
 
 /**
  * 质量评估实体
  * 用于记录培训机构和课程的质量评估结果
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: QualityAssessmentRepository::class)]
 #[ORM\Table(name: 'job_training_quality_assessment', options: ['comment' => '质量评估'])]
 class QualityAssessment implements \Stringable
@@ -27,9 +25,11 @@ class QualityAssessment implements \Stringable
     private ?string $id = null;
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估类型'])]
     private string $assessmentType;
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '目标ID'])]
     private string $targetId;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '评估对象名称'])]
@@ -48,6 +48,7 @@ class QualityAssessment implements \Stringable
     private float $totalScore = 0.0;
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估等级'])]
     private string $assessmentLevel;
 
     #[ORM\Column(type: Types::JSON, options: ['comment' => '评估意见'])]
@@ -56,14 +57,17 @@ class QualityAssessment implements \Stringable
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '评估人'])]
     private string $assessor;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '评估日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '评估日期'])]
     private \DateTimeInterface $assessmentDate;
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估状态'])]
     private string $assessmentStatus = '进行中';
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
-    private ?string $remarks = null;public function getId(): ?string
+    private ?string $remarks = null;
+
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -264,4 +268,4 @@ class QualityAssessment implements \Stringable
     {
         return sprintf('%s - %s (%s)', $this->assessmentType, $this->targetName, $this->assessmentLevel);
     }
-} 
+}

@@ -92,7 +92,7 @@ class QualityAssessmentService
     public function generateAssessmentReport(string $assessmentId): array
     {
         $assessment = $this->assessmentRepository->find($assessmentId);
-        if (!$assessment) {
+        if ($assessment === null) {
             throw new \InvalidArgumentException("质量评估不存在: {$assessmentId}");
         }
 
@@ -125,7 +125,7 @@ class QualityAssessmentService
      */
     private function calculateTotalScore(array $scores): float
     {
-        if ((bool) empty($scores)) {
+        if (empty($scores)) {
             return 0.0;
         }
 
@@ -148,7 +148,7 @@ class QualityAssessmentService
     public function completeAssessment(string $assessmentId): QualityAssessment
     {
         $assessment = $this->assessmentRepository->find($assessmentId);
-        if (!$assessment) {
+        if ($assessment === null) {
             throw new \InvalidArgumentException("质量评估不存在: {$assessmentId}");
         }
 
@@ -204,5 +204,128 @@ class QualityAssessmentService
     public function getAverageScore(): float
     {
         return $this->assessmentRepository->getAverageScore();
+    }
+
+    /**
+     * 获取评估统计信息
+     */
+    public function getAssessmentStatistics(?\DateTime $startDate = null, ?\DateTime $endDate = null, ?string $institutionId = null): array
+    {
+        $assessments = $this->assessmentRepository->findByDateRange($startDate ?? new \DateTime('-1 year'), $endDate ?? new \DateTime());
+        
+        // 如果指定了机构ID，进行过滤
+        if ($institutionId !== null) {
+            $assessments = array_filter($assessments, fn($assessment) => $assessment->getTargetId() === $institutionId);
+        }
+        
+        $totalCount = count($assessments);
+        if ($totalCount === 0) {
+            return [
+                'total_assessments' => 0,
+                'average_score' => 0,
+                'max_score' => 0,
+                'min_score' => 0,
+                'excellent_rate' => 0,
+                'good_rate' => 0,
+                'pass_rate' => 0,
+                'by_type' => [],
+                'by_institution' => [],
+                'trends' => []
+            ];
+        }
+        
+        $scores = array_map(fn($assessment) => $assessment->getTotalScore(), $assessments);
+        $excellentCount = count(array_filter($scores, fn($score) => $score >= 90));
+        $goodCount = count(array_filter($scores, fn($score) => $score >= 80 && $score < 90));
+        $passCount = count(array_filter($scores, fn($score) => $score >= 70));
+        
+        // 按类型统计
+        $byType = [];
+        foreach ($assessments as $assessment) {
+            $type = $assessment->getAssessmentType();
+            if (!isset($byType[$type])) {
+                $byType[$type] = ['count' => 0, 'total_score' => 0, 'pass_count' => 0];
+            }
+            $byType[$type]['count']++;
+            $byType[$type]['total_score'] += $assessment->getTotalScore();
+            if ($assessment->getTotalScore() >= 70) {
+                $byType[$type]['pass_count']++;
+            }
+        }
+        
+        foreach ($byType as $type => &$data) {
+            $data['average_score'] = $data['total_score'] / $data['count'];
+            $data['pass_rate'] = ($data['pass_count'] / $data['count']) * 100;
+        }
+        
+        // 按机构统计
+        $byInstitution = [];
+        foreach ($assessments as $assessment) {
+            $institution = $assessment->getTargetName();
+            if (!isset($byInstitution[$institution])) {
+                $byInstitution[$institution] = ['count' => 0, 'total_score' => 0, 'pass_count' => 0];
+            }
+            $byInstitution[$institution]['count']++;
+            $byInstitution[$institution]['total_score'] += $assessment->getTotalScore();
+            if ($assessment->getTotalScore() >= 70) {
+                $byInstitution[$institution]['pass_count']++;
+            }
+        }
+        
+        foreach ($byInstitution as $institution => &$data) {
+            $data['average_score'] = $data['total_score'] / $data['count'];
+            $data['pass_rate'] = ($data['pass_count'] / $data['count']) * 100;
+        }
+        
+        // 排序并限制前10
+        arsort($byInstitution);
+        $byInstitution = array_slice($byInstitution, 0, 10, true);
+        
+        return [
+            'total_assessments' => $totalCount,
+            'average_score' => array_sum($scores) / $totalCount,
+            'max_score' => max($scores),
+            'min_score' => min($scores),
+            'excellent_rate' => ($excellentCount / $totalCount) * 100,
+            'good_rate' => ($goodCount / $totalCount) * 100,
+            'pass_rate' => ($passCount / $totalCount) * 100,
+            'by_type' => $byType,
+            'by_institution' => $byInstitution,
+            'trends' => []
+        ];
+    }
+
+    /**
+     * 导出评估数据
+     */
+    public function exportAssessments(?\DateTime $startDate = null, ?\DateTime $endDate = null, ?string $institutionId = null): array
+    {
+        $assessments = $this->assessmentRepository->findByDateRange($startDate ?? new \DateTime('-1 year'), $endDate ?? new \DateTime());
+        
+        // 如果指定了机构ID，进行过滤
+        if ($institutionId !== null) {
+            $assessments = array_filter($assessments, fn($assessment) => $assessment->getTargetId() === $institutionId);
+        }
+        
+        $exportData = [];
+        foreach ($assessments as $assessment) {
+            $exportData[] = [
+                'id' => $assessment->getId(),
+                'type' => $assessment->getAssessmentType(),
+                'target_id' => $assessment->getTargetId(),
+                'target_name' => $assessment->getTargetName(),
+                'criteria' => $assessment->getAssessmentCriteria(),
+                'total_score' => $assessment->getTotalScore(),
+                'level' => $assessment->getAssessmentLevel(),
+                'assessor' => $assessment->getAssessor(),
+                'assessment_date' => $assessment->getAssessmentDate()->format('Y-m-d'),
+                'status' => $assessment->getAssessmentStatus(),
+                'is_completed' => $assessment->isCompleted(),
+                'is_passed' => $assessment->isPassed(),
+                'remarks' => $assessment->getRemarks()
+            ];
+        }
+        
+        return $exportData;
     }
 } 

@@ -173,12 +173,12 @@ public function __construct(
      */
     private function generateSpecialReport(?string $startDateStr, ?string $endDateStr, ?string $title, string $reporter, SymfonyStyle $io)
     {
-        if (!$startDateStr || !$endDateStr) {
+        if ($startDateStr === null || $endDateStr === null) {
             $io->error('专项报告需要指定开始日期和结束日期');
             return null;
         }
 
-        if (!$title) {
+        if ($title === null) {
             $io->error('专项报告需要指定标题');
             return null;
         }

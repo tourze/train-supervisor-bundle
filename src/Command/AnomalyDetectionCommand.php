@@ -69,7 +69,7 @@ public function __construct(
             $startDate = null;
             $endDate = null;
 
-            if ($startDateStr && (bool) $endDateStr) {
+            if ($startDateStr !== null && $endDateStr !== null) {
                 $startDate = new \DateTime($startDateStr);
                 $endDate = new \DateTime($endDateStr);
                 $io->text(sprintf('检测期间: %s 至 %s', $startDate->format('Y-m-d'), $endDate->format('Y-m-d')));
@@ -90,16 +90,16 @@ public function __construct(
             $this->displayAnomalies($anomalies, $verboseOutput, $io);
 
             // 导出异常报告
-            if ((bool) $exportFile) {
+            if ($exportFile !== null) {
                 $this->exportAnomalies($anomalies, $exportFile, $io);
             }
 
             // 自动发送预警
-            if ($autoAlert && (bool) !empty($anomalies)) {
+            if ((bool) $autoAlert && !empty($anomalies)) {
                 $this->sendAnomalyAlerts($anomalies, $io);
             }
 
-            if ((bool) empty($anomalies)) {
+            if (empty($anomalies)) {
                 $io->success('未检测到异常数据');
             } else {
                 $io->warning(sprintf('检测到 %d 项异常，请及时处理', count($anomalies)));
@@ -126,7 +126,7 @@ public function __construct(
             'new_classroom_ratio' => 100.0, // 新开班比例超过100%
         ];
 
-        if (!$thresholdJson) {
+        if ($thresholdJson === null) {
             return $defaultThresholds;
         }
 
@@ -219,7 +219,7 @@ public function __construct(
         foreach ($supervisorData as $record) {
             $totalFaceDetect = $record->getFaceDetectSuccessCount() + $record->getFaceDetectFailCount();
             
-            if ($totalFaceDetect > 0) {
+            if (is_numeric($totalFaceDetect) && $totalFaceDetect > 0) {
                 $failRate = ($record->getFaceDetectFailCount() / $totalFaceDetect) * 100;
                 
                 if ($failRate > $thresholds['face_fail_rate']) {
@@ -334,7 +334,7 @@ public function __construct(
      */
     private function displayAnomalies(array $anomalies, bool $verbose, SymfonyStyle $io): void
     {
-        if ((bool) empty($anomalies)) {
+        if (empty($anomalies)) {
             return;
         }
 
@@ -357,7 +357,7 @@ public function __construct(
             $count = count($groupedAnomalies[$severity]);
             $io->section(sprintf('%s异常 (%d项)', $severity, $count));
 
-            if ((bool) $verbose) {
+            if ($verbose) {
                 // 详细显示
                 foreach ($groupedAnomalies[$severity] as $anomaly) {
                     $io->text(sprintf('- %s: %s', $anomaly['supplier_name'], $anomaly['description']));
@@ -437,7 +437,7 @@ public function __construct(
         // 按严重程度过滤需要预警的异常
         $alertAnomalies = array_filter($anomalies, fn($anomaly) => in_array($anomaly['severity'], ['严重', '重要']));
 
-        if ((bool) empty($alertAnomalies)) {
+        if (empty($alertAnomalies)) {
             $io->info('没有需要预警的严重异常');
             return;
         }

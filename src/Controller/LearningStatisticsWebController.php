@@ -17,8 +17,7 @@ class LearningStatisticsWebController extends AbstractController
 {
     public function __construct(
         private readonly LearningStatisticsService $statisticsService,
-    ) {
-    }
+    ) {}
 
     /**
      * 学习统计主页
@@ -27,13 +26,13 @@ class LearningStatisticsWebController extends AbstractController
     public function index(Request $request): Response
     {
         $filters = $this->extractFilters($request);
-        
+
         try {
             $overview = $this->statisticsService->getLearningOverview($filters);
             $byInstitution = $this->statisticsService->getStatisticsByInstitution($filters);
             $byRegion = $this->statisticsService->getStatisticsByRegion($filters);
             $trends = $this->statisticsService->getLearningTrends($filters, 'daily');
-            
+
             return $this->render('@TrainSupervisor/learning_statistics/index.html.twig', [
                 'overview' => $overview,
                 'by_institution' => array_slice($byInstitution, 0, 10),
@@ -42,10 +41,9 @@ class LearningStatisticsWebController extends AbstractController
                 'filters' => $filters,
                 'total_institutions' => count($byInstitution),
             ]);
-            
         } catch (\Throwable $e) {
-            $this->addFlash('error', '获取统计数据失败：' . $e->getMessage());
-            
+            $this->addFlash('danger', '获取统计数据失败：' . $e->getMessage());
+
             return $this->render('@TrainSupervisor/learning_statistics/index.html.twig', [
                 'overview' => null,
                 'by_institution' => [],
@@ -64,20 +62,19 @@ class LearningStatisticsWebController extends AbstractController
     public function institutionDetail(string $id, Request $request): Response
     {
         $filters = array_merge($this->extractFilters($request), ['institution_id' => $id]);
-        
+
         try {
             $statistics = $this->statisticsService->getLearningStatistics($filters);
             $trends = $this->statisticsService->getLearningTrends($filters, 'daily');
-            
+
             return $this->render('@TrainSupervisor/learning_statistics/institution_detail.html.twig', [
                 'institution_id' => $id,
                 'statistics' => $statistics,
                 'trends' => $trends,
                 'filters' => $filters,
             ]);
-            
         } catch (\Throwable $e) {
-            $this->addFlash('error', '获取机构统计数据失败：' . $e->getMessage());
+            $this->addFlash('danger', '获取机构统计数据失败：' . $e->getMessage());
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
     }
@@ -89,17 +86,16 @@ class LearningStatisticsWebController extends AbstractController
     public function realtime(Request $request): Response
     {
         $filters = $this->extractFilters($request);
-        
+
         try {
             $realtime = $this->statisticsService->getRealtimeStatistics($filters);
-            
+
             return $this->render('@TrainSupervisor/learning_statistics/realtime.html.twig', [
                 'realtime' => $realtime,
                 'filters' => $filters,
             ]);
-            
         } catch (\Throwable $e) {
-            $this->addFlash('error', '获取实时数据失败：' . $e->getMessage());
+            $this->addFlash('danger', '获取实时数据失败：' . $e->getMessage());
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
     }
@@ -112,18 +108,17 @@ class LearningStatisticsWebController extends AbstractController
     {
         $filters = $this->extractFilters($request);
         $periodType = $request->query->get('period_type', 'daily');
-        
+
         try {
             $trends = $this->statisticsService->getLearningTrends($filters, $periodType);
-            
+
             return $this->render('@TrainSupervisor/learning_statistics/trends.html.twig', [
                 'trends' => $trends,
                 'period_type' => $periodType,
                 'filters' => $filters,
             ]);
-            
         } catch (\Throwable $e) {
-            $this->addFlash('error', '获取趋势数据失败：' . $e->getMessage());
+            $this->addFlash('danger', '获取趋势数据失败：' . $e->getMessage());
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
     }
@@ -135,13 +130,13 @@ class LearningStatisticsWebController extends AbstractController
     public function reports(Request $request): Response
     {
         $filters = $this->extractFilters($request);
-        
+
         try {
             $overview = $this->statisticsService->getLearningOverview($filters);
             $byInstitution = $this->statisticsService->getStatisticsByInstitution($filters);
             $byRegion = $this->statisticsService->getStatisticsByRegion($filters);
             $byAgeGroup = $this->statisticsService->getStatisticsByAgeGroup($filters);
-            
+
             return $this->render('@TrainSupervisor/learning_statistics/reports.html.twig', [
                 'overview' => $overview,
                 'by_institution' => $byInstitution,
@@ -150,9 +145,8 @@ class LearningStatisticsWebController extends AbstractController
                 'filters' => $filters,
                 'generated_at' => new \DateTime(),
             ]);
-            
         } catch (\Throwable $e) {
-            $this->addFlash('error', '生成报告失败：' . $e->getMessage());
+            $this->addFlash('danger', '生成报告失败：' . $e->getMessage());
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
     }
@@ -206,4 +200,4 @@ class LearningStatisticsWebController extends AbstractController
 
         return $filters;
     }
-} 
+}

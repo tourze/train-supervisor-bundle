@@ -6,19 +6,19 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
-use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
+use Tourze\TrainCourseBundle\Trait\SupplierAware;
 use Tourze\TrainSupervisorBundle\Repository\SupervisorRepository;
 
-#[Exportable]
 #[ORM\Entity(repositoryClass: SupervisorRepository::class)]
 #[ORM\Table(name: 'job_training_supervisor', options: ['comment' => '监管明细'])]
 #[ORM\UniqueConstraint(name: 'job_training_supervisor_idx_uniq', columns: ['supplier_id', 'date'])]
 class Supervisor implements Stringable
 {
     use TimestampableAware;
+    use SupplierAware;
+
     #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -26,6 +26,7 @@ class Supervisor implements Stringable
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '日期'])]
     private \DateTimeInterface $date;
 
     #[ORM\Column(options: ['comment' => '总开班数'])]
@@ -49,9 +50,8 @@ class Supervisor implements Stringable
     #[ORM\Column(options: ['comment' => '人脸识别失败次数'])]
     private int $faceDetectFailCount = 0;
 
-    #[IndexColumn]
     #[Groups(['restful_read', 'admin_curd', 'restful_read'])]
-    public function getId(): ?int
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -151,6 +151,7 @@ class Supervisor implements Stringable
 
         return $this;
     }
+
     public function __toString(): string
     {
         return (string) $this->id;

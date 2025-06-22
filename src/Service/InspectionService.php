@@ -2,7 +2,6 @@
 
 namespace Tourze\TrainSupervisorBundle\Service;
 
-use AppBundle\Entity\Supplier;
 use Doctrine\ORM\EntityManagerInterface;
 use Tourze\TrainSupervisorBundle\Entity\SupervisionInspection;
 use Tourze\TrainSupervisorBundle\Entity\SupervisionPlan;
@@ -19,8 +18,7 @@ class InspectionService
         private readonly EntityManagerInterface $entityManager,
         private readonly SupervisionInspectionRepository $inspectionRepository,
         private readonly SupervisionPlanRepository $planRepository
-    ) {
-    }
+    ) {}
 
     /**
      * 根据监督计划创建检查任务
@@ -28,10 +26,10 @@ class InspectionService
     public function createInspectionsFromPlan(SupervisionPlan $plan, \DateTime $date): array
     {
         $inspections = [];
-        
+
         // 这里可以根据计划的监督范围和项目创建相应的检查任务
         // 暂时返回空数组，具体业务逻辑可以后续实现
-        
+
         return $inspections;
     }
 
@@ -41,7 +39,7 @@ class InspectionService
     public function getPlannedInspectionsFromPlan(SupervisionPlan $plan, \DateTime $date): array
     {
         $plannedInspections = [];
-        
+
         // 模拟计划将要创建的检查任务
         foreach ($plan->getSupervisionScope() as $scope) {
             $plannedInspections[] = [
@@ -50,7 +48,7 @@ class InspectionService
                 'date' => $date->format('Y-m-d')
             ];
         }
-        
+
         return $plannedInspections;
     }
 
@@ -60,24 +58,24 @@ class InspectionService
     public function createInspection(array $inspectionData): SupervisionInspection
     {
         $inspection = new SupervisionInspection();
-        
+
         // 设置基本信息
-        if ((bool) isset($inspectionData['plan'])) {
+        if (isset($inspectionData['plan'])) {
             $inspection->setPlan($inspectionData['plan']);
         }
-        if ((bool) isset($inspectionData['inspectionType'])) {
+        if (isset($inspectionData['inspectionType'])) {
             $inspection->setInspectionType($inspectionData['inspectionType']);
         }
-        if ((bool) isset($inspectionData['inspectionDate'])) {
+        if (isset($inspectionData['inspectionDate'])) {
             $inspection->setInspectionDate($inspectionData['inspectionDate']);
         }
-        if ((bool) isset($inspectionData['inspector'])) {
+        if (isset($inspectionData['inspector'])) {
             $inspection->setInspector($inspectionData['inspector']);
         }
-        
+
         $this->entityManager->persist($inspection);
         $this->entityManager->flush();
-        
+
         return $inspection;
     }
 
@@ -87,21 +85,21 @@ class InspectionService
     public function updateInspection(string $inspectionId, array $inspectionData): SupervisionInspection
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
-        if (!$inspection) {
+        if ($inspection === null) {
             throw new \InvalidArgumentException("检查任务不存在: {$inspectionId}");
         }
 
         // 更新检查信息
-        if ((bool) isset($inspectionData['inspectionStatus'])) {
+        if (isset($inspectionData['inspectionStatus'])) {
             $inspection->setInspectionStatus($inspectionData['inspectionStatus']);
         }
-        if ((bool) isset($inspectionData['overallScore'])) {
+        if (isset($inspectionData['overallScore'])) {
             $inspection->setOverallScore($inspectionData['overallScore']);
         }
-        if ((bool) isset($inspectionData['inspectionReport'])) {
+        if (isset($inspectionData['inspectionReport'])) {
             $inspection->setInspectionReport($inspectionData['inspectionReport']);
         }
-        if ((bool) isset($inspectionData['foundProblems'])) {
+        if (isset($inspectionData['foundProblems'])) {
             $inspection->setFoundProblems($inspectionData['foundProblems']);
         }
 
@@ -116,18 +114,14 @@ class InspectionService
     public function conductInspection(string $planId, string $institutionId, array $inspectionData): SupervisionInspection
     {
         $plan = $this->planRepository->find($planId);
-        if (!$plan) {
+        if ($plan === null) {
             throw new \InvalidArgumentException("监督计划不存在: {$planId}");
-        }
-
-        $institution = $this->entityManager->getRepository(Supplier::class)->find($institutionId);
-        if (!$institution) {
-            throw new \InvalidArgumentException("培训机构不存在: {$institutionId}");
         }
 
         $inspection = new SupervisionInspection();
         $inspection->setPlan($plan);
-        $inspection->setInstitution($institution);
+        $inspection->setSupplierId($institutionId);
+        $inspection->setInstitutionName($inspectionData['institutionName'] ?? '');
         $inspection->setInspectionType($inspectionData['inspectionType']);
         $inspection->setInspectionDate($inspectionData['inspectionDate']);
         $inspection->setInspector($inspectionData['inspector']);
@@ -151,26 +145,26 @@ class InspectionService
     public function updateInspectionResults(string $inspectionId, array $results): SupervisionInspection
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
-        if (!$inspection) {
+        if ($inspection === null) {
             throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
         }
 
-        if ((bool) isset($results['inspectionResults'])) {
+        if (isset($results['inspectionResults'])) {
             $inspection->setInspectionResults($results['inspectionResults']);
         }
-        if ((bool) isset($results['foundProblems'])) {
+        if (isset($results['foundProblems'])) {
             $inspection->setFoundProblems($results['foundProblems']);
         }
-        if ((bool) isset($results['overallScore'])) {
+        if (isset($results['overallScore'])) {
             $inspection->setOverallScore($results['overallScore']);
         }
-        if ((bool) isset($results['inspectionReport'])) {
+        if (isset($results['inspectionReport'])) {
             $inspection->setInspectionReport($results['inspectionReport']);
         }
-        if ((bool) isset($results['inspectionStatus'])) {
+        if (isset($results['inspectionStatus'])) {
             $inspection->setInspectionStatus($results['inspectionStatus']);
         }
-        if ((bool) isset($results['remarks'])) {
+        if (isset($results['remarks'])) {
             $inspection->setRemarks($results['remarks']);
         }
 
@@ -185,32 +179,26 @@ class InspectionService
     public function calculateInspectionScore(string $inspectionId): float
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
-        if (!$inspection) {
+        if ($inspection === null) {
             throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
         }
 
-        $results = $inspection->getInspectionResults();
-        if ((bool) empty($results)) {
+        $inspectionResults = $inspection->getInspectionResults();
+        if (empty($inspectionResults)) {
             return 0.0;
         }
 
         $totalScore = 0.0;
         $totalWeight = 0.0;
 
-        foreach ($results as $result) {
-            $score = $result['score'] ?? 0;
-            $weight = $result['weight'] ?? 1;
-            $totalScore += $score * $weight;
-            $totalWeight += $weight;
+        foreach ($inspectionResults as $result) {
+            if (isset($result['score'], $result['weight'])) {
+                $totalScore += $result['score'] * $result['weight'];
+                $totalWeight += $result['weight'];
+            }
         }
 
-        $overallScore = $totalWeight > 0 ? $totalScore / $totalWeight : 0.0;
-        
-        // 更新总体评分
-        $inspection->setOverallScore($overallScore);
-        $this->entityManager->flush();
-
-        return $overallScore;
+        return $totalWeight > 0 ? $totalScore / $totalWeight : 0.0;
     }
 
     /**
@@ -219,7 +207,7 @@ class InspectionService
     public function generateInspectionReport(string $inspectionId): array
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
-        if (!$inspection) {
+        if ($inspection === null) {
             throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
         }
 
@@ -227,7 +215,7 @@ class InspectionService
             'inspectionInfo' => [
                 'id' => $inspection->getId(),
                 'planName' => $inspection->getPlan()->getPlanName(),
-                'institutionName' => $inspection->getInstitution()->getName(),
+                'institutionName' => $inspection->getInstitutionName(),
                 'inspectionType' => $inspection->getInspectionType(),
                 'inspectionDate' => $inspection->getInspectionDate()->format('Y-m-d'),
                 'inspector' => $inspection->getInspector(),
@@ -252,7 +240,7 @@ class InspectionService
      */
     public function getInspectionHistory(string $institutionId): array
     {
-        return $this->inspectionRepository->findByInstitution($institutionId);
+        return $this->inspectionRepository->findBy(['supplierId' => $institutionId]);
     }
 
     /**
@@ -261,7 +249,7 @@ class InspectionService
     public function completeInspection(string $inspectionId): SupervisionInspection
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
-        if (!$inspection) {
+        if ($inspection === null) {
             throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
         }
 
@@ -310,38 +298,38 @@ class InspectionService
     {
         $endDate = new \DateTime();
         $startDate = (clone $endDate)->modify("-{$days} days");
-        
+
         $inspections = $this->getInspectionsByDateRange($startDate, $endDate);
-        
+
         $trends = [];
         $problemTrends = [];
         $scoreTrends = [];
-        
+
         foreach ($inspections as $inspection) {
             $date = $inspection->getInspectionDate()->format('Y-m-d');
-            
+
             if (!isset($trends[$date])) {
                 $trends[$date] = 0;
                 $problemTrends[$date] = 0;
                 $scoreTrends[$date] = [];
             }
-            
+
             $trends[$date]++;
-            
+
             if ($inspection->hasProblems()) {
                 $problemTrends[$date]++;
             }
-            
+
             if ($inspection->getOverallScore() !== null) {
                 $scoreTrends[$date][] = $inspection->getOverallScore();
             }
         }
-        
+
         // 计算平均分
         foreach ($scoreTrends as $date => $scores) {
             $scoreTrends[$date] = !empty($scores) ? array_sum($scores) / count($scores) : 0;
         }
-        
+
         return [
             'period' => [
                 'startDate' => $startDate->format('Y-m-d'),
@@ -358,4 +346,4 @@ class InspectionService
             ]
         ];
     }
-} 
+}

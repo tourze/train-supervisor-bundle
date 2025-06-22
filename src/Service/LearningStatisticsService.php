@@ -3,7 +3,6 @@
 namespace Tourze\TrainSupervisorBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Tourze\TrainSupervisorBundle\Repository\SupervisorRepository;
 
 /**
  * 学习统计服务
@@ -13,9 +12,7 @@ class LearningStatisticsService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly SupervisorRepository $supervisorRepository,
-    ) {
-    }
+    ) {}
 
     /**
      * 获取学习统计数据
@@ -45,7 +42,7 @@ class LearningStatisticsService
     public function getEnrollmentStatistics(array $filters): array
     {
         $query = $this->buildBaseQuery($filters);
-        
+
         // 统计总报名人数
         $totalEnrolled = $query
             ->select('SUM(s.dailyLoginCount) as total_enrolled')
@@ -54,7 +51,7 @@ class LearningStatisticsService
 
         // 按时间段统计
         $byPeriod = $this->getEnrollmentByPeriod($filters);
-        
+
         // 按机构统计
         $byInstitution = $this->getEnrollmentByInstitution($filters);
 
@@ -72,7 +69,7 @@ class LearningStatisticsService
     public function getCompletedLearningStatistics(array $filters): array
     {
         $query = $this->buildBaseQuery($filters);
-        
+
         // 统计总完成人数
         $totalCompleted = $query
             ->select('SUM(s.dailyLearnCount) as total_completed')
@@ -81,12 +78,12 @@ class LearningStatisticsService
 
         $enrollmentStats = $this->getEnrollmentStatistics($filters);
         $totalEnrolled = $enrollmentStats['total_enrolled'];
-        
+
         $completionRate = $totalEnrolled > 0 ? ($totalCompleted / $totalEnrolled) * 100 : 0;
 
         // 按时间段统计
         $byPeriod = $this->getCompletionByPeriod($filters);
-        
+
         // 按机构统计
         $byInstitution = $this->getCompletionByInstitution($filters);
 
@@ -141,7 +138,7 @@ class LearningStatisticsService
     public function getStatisticsByInstitution(array $filters): array
     {
         $query = $this->buildBaseQuery($filters);
-        
+
         $results = $query
             ->select([
                 'supplier.name as institution_name',
@@ -157,12 +154,12 @@ class LearningStatisticsService
             ->getQuery()
             ->getArrayResult();
 
-        return array_map(function($item) {
-            $completionRate = $item['enrolled_count'] > 0 
-                ? ($item['completed_count'] / $item['enrolled_count']) * 100 
+        return array_map(function ($item) {
+            $completionRate = $item['enrolled_count'] > 0
+                ? ($item['completed_count'] / $item['enrolled_count']) * 100
                 : 0;
-            $cheatRate = $item['completed_count'] > 0 
-                ? ($item['cheat_count'] / $item['completed_count']) * 100 
+            $cheatRate = $item['completed_count'] > 0
+                ? ($item['cheat_count'] / $item['completed_count']) * 100
                 : 0;
 
             return [
@@ -187,10 +184,10 @@ class LearningStatisticsService
         // 这里需要根据实际的区域字段来实现
         // 假设机构表有region字段
         $query = $this->buildBaseQuery($filters);
-        
+
         // 由于当前Supplier实体可能没有region字段，这里先返回模拟数据
         // 实际实现需要根据机构的区域信息来统计
-        
+
         return [
             [
                 'region' => '华北地区',
@@ -223,7 +220,7 @@ class LearningStatisticsService
     {
         // 这里需要根据实际的用户年龄数据来实现
         // 当前监督数据中没有年龄信息，这里返回模拟数据
-        
+
         return [
             '18-25岁' => [
                 'enrolled_count' => 800,
@@ -259,8 +256,8 @@ class LearningStatisticsService
     public function getLearningTrends(array $filters, string $periodType = 'daily'): array
     {
         $query = $this->buildBaseQuery($filters);
-        
-        $groupByFormat = match($periodType) {
+
+        $groupByFormat = match ($periodType) {
             'daily' => 'DATE_FORMAT(s.date, \'%Y-%m-%d\')',
             'weekly' => 'YEARWEEK(s.date)',
             'monthly' => 'DATE_FORMAT(s.date, \'%Y-%m\')',
@@ -279,9 +276,9 @@ class LearningStatisticsService
             ->getQuery()
             ->getArrayResult();
 
-        return array_map(function($item) {
-            $completionRate = $item['enrolled_count'] > 0 
-                ? ($item['completed_count'] / $item['enrolled_count']) * 100 
+        return array_map(function ($item) {
+            $completionRate = $item['enrolled_count'] > 0
+                ? ($item['completed_count'] / $item['enrolled_count']) * 100
                 : 0;
 
             return [
@@ -300,7 +297,7 @@ class LearningStatisticsService
     public function exportLearningStatistics(array $filters, string $format): array
     {
         $statistics = $this->getLearningStatistics($filters);
-        
+
         switch ($format) {
             case 'csv':
                 return $this->exportToCsv($statistics);
@@ -392,28 +389,28 @@ class LearningStatisticsService
     {
         $qb = $this->entityManager->createQueryBuilder();
         $qb->from('Tourze\TrainSupervisorBundle\Entity\Supervisor', 's')
-           ->leftJoin('s.supplier', 'supplier');
+            ->leftJoin('s.supplier', 'supplier');
 
         // 应用时间过滤
         if (!empty($filters['start_date'])) {
             $qb->andWhere('s.date >= :start_date')
-               ->setParameter('start_date', $filters['start_date']);
+                ->setParameter('start_date', $filters['start_date']);
         }
 
         if (!empty($filters['end_date'])) {
             $qb->andWhere('s.date <= :end_date')
-               ->setParameter('end_date', $filters['end_date']);
+                ->setParameter('end_date', $filters['end_date']);
         }
 
         // 应用机构过滤
         if (!empty($filters['institution_id'])) {
             $qb->andWhere('supplier.id = :institution_id')
-               ->setParameter('institution_id', $filters['institution_id']);
+                ->setParameter('institution_id', $filters['institution_id']);
         }
 
         if (!empty($filters['institution_ids'])) {
             $qb->andWhere('supplier.id IN (:institution_ids)')
-               ->setParameter('institution_ids', $filters['institution_ids']);
+                ->setParameter('institution_ids', $filters['institution_ids']);
         }
 
         return $qb;
@@ -425,7 +422,7 @@ class LearningStatisticsService
     private function getEnrollmentByPeriod(array $filters): array
     {
         $query = $this->buildBaseQuery($filters);
-        
+
         return $query
             ->select([
                 'DATE_FORMAT(s.date, \'%Y-%m-%d\') as date',
@@ -443,7 +440,7 @@ class LearningStatisticsService
     private function getEnrollmentByInstitution(array $filters): array
     {
         $query = $this->buildBaseQuery($filters);
-        
+
         return $query
             ->select([
                 'supplier.name as institution_name',
@@ -462,7 +459,7 @@ class LearningStatisticsService
     private function getCompletionByPeriod(array $filters): array
     {
         $query = $this->buildBaseQuery($filters);
-        
+
         return $query
             ->select([
                 'DATE_FORMAT(s.date, \'%Y-%m-%d\') as date',
@@ -480,7 +477,7 @@ class LearningStatisticsService
     private function getCompletionByInstitution(array $filters): array
     {
         $query = $this->buildBaseQuery($filters);
-        
+
         return $query
             ->select([
                 'supplier.name as institution_name',
@@ -499,7 +496,7 @@ class LearningStatisticsService
     private function getOnlineByPeriod(array $filters): array
     {
         $query = $this->buildBaseQuery($filters);
-        
+
         return $query
             ->select([
                 'DATE_FORMAT(s.date, \'%Y-%m-%d\') as date',
@@ -560,9 +557,10 @@ class LearningStatisticsService
     private function exportToCsv(array $data): array
     {
         $output = "机构名称,报名人数,完成人数,完成率,在线人数\n";
-        
+
         foreach ($data['enrollment']['by_institution'] as $item) {
-            $output .= sprintf("%s,%d,%d,%.2f%%,%d\n",
+            $output .= sprintf(
+                "%s,%d,%d,%.2f%%,%d\n",
                 $item['institution_name'],
                 $item['count'],
                 0, // 这里需要关联完成数据
@@ -596,10 +594,10 @@ class LearningStatisticsService
         // 目前返回简单的HTML格式作为示例
         $html = '<h1>学习统计报告</h1>';
         $html .= '<p>生成时间：' . date('Y-m-d H:i:s') . '</p>';
-        
+
         return [
             'content' => $html,
             'mime_type' => 'text/html; charset=utf-8'
         ];
     }
-} 
+}

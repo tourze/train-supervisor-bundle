@@ -90,7 +90,7 @@ public function __construct(
      */
     private function createAssessment(?string $institutionId, string $assessmentType, string $dateStr, string $assessor, bool $autoScore, SymfonyStyle $io): int
     {
-        if (!$institutionId) {
+        if ($institutionId === null) {
             $io->error('创建评估需要指定机构ID');
             return Command::FAILURE;
         }
@@ -121,7 +121,7 @@ public function __construct(
      */
     private function batchAssessment(?string $startDateStr, ?string $endDateStr, string $assessmentType, string $assessor, bool $autoScore, SymfonyStyle $io): int
     {
-        if (!$startDateStr || !$endDateStr) {
+        if ($startDateStr === null || $endDateStr === null) {
             $io->error('批量评估需要指定开始日期和结束日期');
             return Command::FAILURE;
         }
@@ -188,7 +188,7 @@ public function __construct(
         $startDate = null;
         $endDate = null;
 
-        if ($startDateStr && (bool) $endDateStr) {
+        if ($startDateStr !== null && $endDateStr !== null) {
             try {
                 $startDate = new \DateTime($startDateStr);
                 $endDate = new \DateTime($endDateStr);
@@ -201,7 +201,7 @@ public function __construct(
             $io->text('分析所有评估数据');
         }
 
-        if ((bool) $institutionId) {
+        if ($institutionId !== null) {
             $io->text(sprintf('指定机构: %s', $institutionId));
         }
 
@@ -211,7 +211,7 @@ public function __construct(
         $this->displayAssessmentStatistics($statistics, $io);
 
         // 导出分析结果
-        if ((bool) $exportFile) {
+        if ($exportFile !== null) {
             $this->exportAnalysisResults($statistics, $exportFile, $io);
         }
 
@@ -223,7 +223,7 @@ public function __construct(
      */
     private function exportAssessments(?string $startDateStr, ?string $endDateStr, ?string $institutionId, ?string $exportFile, SymfonyStyle $io): int
     {
-        if (!$exportFile) {
+        if ($exportFile === null) {
             $io->error('导出操作需要指定导出文件');
             return Command::FAILURE;
         }
@@ -233,7 +233,7 @@ public function __construct(
         $startDate = null;
         $endDate = null;
 
-        if ($startDateStr && (bool) $endDateStr) {
+        if ($startDateStr !== null && $endDateStr !== null) {
             try {
                 $startDate = new \DateTime($startDateStr);
                 $endDate = new \DateTime($endDateStr);
@@ -246,7 +246,7 @@ public function __construct(
         // 导出评估数据
         $data = $this->assessmentService->exportAssessments($startDate, $endDate, $institutionId);
 
-        if ((bool) empty($data)) {
+        if (empty($data)) {
             $io->warning('没有数据可导出');
             return Command::SUCCESS;
         }

@@ -7,7 +7,6 @@ use Tourze\TrainSupervisorBundle\Entity\SupervisionReport;
 use Tourze\TrainSupervisorBundle\Repository\ProblemTrackingRepository;
 use Tourze\TrainSupervisorBundle\Repository\QualityAssessmentRepository;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionInspectionRepository;
-use Tourze\TrainSupervisorBundle\Repository\SupervisionReportRepository;
 
 /**
  * 监督报告服务
@@ -17,12 +16,10 @@ class ReportService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly SupervisionReportRepository $reportRepository,
         private readonly SupervisionInspectionRepository $inspectionRepository,
         private readonly ProblemTrackingRepository $problemRepository,
         private readonly QualityAssessmentRepository $assessmentRepository,
-    ) {
-    }
+    ) {}
 
     /**
      * 生成日报
@@ -69,8 +66,9 @@ class ReportService
 
         $report = new SupervisionReport();
         $report->setReportType('周报')
-            ->setReportTitle(sprintf('%s至%s 培训监督周报', 
-                $startDate->format('Y年m月d日'), 
+            ->setReportTitle(sprintf(
+                '%s至%s 培训监督周报',
+                $startDate->format('Y年m月d日'),
                 $endDate->format('Y年m月d日')
             ))
             ->setReportPeriodStart($startDate)
@@ -176,15 +174,15 @@ class ReportService
      * 收集监督数据
      */
     private function collectSupervisionData(
-        \DateTimeInterface $startDate, 
-        \DateTimeInterface $endDate, 
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate,
         array $criteria = []
     ): array {
         // 收集检查数据
-        $inspections = $this->inspectionRepository->findByDateRange($startDate, $endDate, $criteria);
-        
+        $inspections = $this->inspectionRepository->findByDateRange($startDate, $endDate);
+
         // 收集质量评估数据
-        $assessments = $this->assessmentRepository->findByDateRange($startDate, $endDate, $criteria);
+        $assessments = $this->assessmentRepository->findByDateRange($startDate, $endDate);
 
         return [
             'inspection_count' => count($inspections),
@@ -210,11 +208,11 @@ class ReportService
      * 收集问题汇总
      */
     private function collectProblemSummary(
-        \DateTimeInterface $startDate, 
-        \DateTimeInterface $endDate, 
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate,
         array $criteria = []
     ): array {
-        $problems = $this->problemRepository->findByDateRange($startDate, $endDate, $criteria);
+        $problems = $this->problemRepository->findByDateRange($startDate, $endDate);
 
         $summary = [
             'total_problems' => count($problems),
@@ -256,13 +254,13 @@ class ReportService
      * 生成统计数据
      */
     private function generateStatistics(
-        \DateTimeInterface $startDate, 
-        \DateTimeInterface $endDate, 
+        \DateTimeInterface $startDate,
+        \DateTimeInterface $endDate,
         array $criteria = []
     ): array {
-        $inspections = $this->inspectionRepository->findByDateRange($startDate, $endDate, $criteria);
-        $assessments = $this->assessmentRepository->findByDateRange($startDate, $endDate, $criteria);
-        $problems = $this->problemRepository->findByDateRange($startDate, $endDate, $criteria);
+        $inspections = $this->inspectionRepository->findByDateRange($startDate, $endDate);
+        $assessments = $this->assessmentRepository->findByDateRange($startDate, $endDate);
+        $problems = $this->problemRepository->findByDateRange($startDate, $endDate);
 
         // 计算平均分数
         $inspectionScores = array_filter(array_map(fn($i) => $i->getScore(), $inspections));
@@ -272,12 +270,12 @@ class ReportService
             'period_days' => $startDate->diff($endDate)->days + 1,
             'inspection_stats' => [
                 'total' => count($inspections),
-                'average_score' => $inspectionScores ? round(array_sum($inspectionScores) / count($inspectionScores), 2) : 0,
+                'average_score' => !empty($inspectionScores) ? round(array_sum($inspectionScores) / count($inspectionScores), 2) : 0,
                 'pass_rate' => $this->calculatePassRate($inspections),
             ],
             'assessment_stats' => [
                 'total' => count($assessments),
-                'average_score' => $assessmentScores ? round(array_sum($assessmentScores) / count($assessmentScores), 2) : 0,
+                'average_score' => !empty($assessmentScores) ? round(array_sum($assessmentScores) / count($assessmentScores), 2) : 0,
                 'excellent_rate' => $this->calculateExcellentRate($assessments),
             ],
             'problem_stats' => [
@@ -366,10 +364,11 @@ class ReportService
         array $statisticsData
     ): string {
         $content = "# {$reportType}\n\n";
-        
+
         $content .= "## 监督概况\n";
-        $content .= sprintf("本期共进行检查 %d 次，质量评估 %d 次。\n\n", 
-            $supervisionData['inspection_count'], 
+        $content .= sprintf(
+            "本期共进行检查 %d 次，质量评估 %d 次。\n\n",
+            $supervisionData['inspection_count'],
             $supervisionData['assessment_count']
         );
 
@@ -438,7 +437,7 @@ class ReportService
 
         $change = $current - $previous;
         $percentage = round(($change / $previous) * 100, 2);
-        
+
         $direction = 'stable';
         if ($percentage > 5) {
             $direction = 'up';
@@ -452,4 +451,4 @@ class ReportService
             'direction' => $direction,
         ];
     }
-} 
+}

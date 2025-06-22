@@ -2,20 +2,17 @@
 
 namespace Tourze\TrainSupervisorBundle\Entity;
 
-use AppBundle\Entity\Supplier;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionPlanRepository;
 
 /**
  * 监督计划实体
  * 用于管理培训监督计划的制定、执行和跟踪
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: SupervisionPlanRepository::class)]
 #[ORM\Table(name: 'job_training_supervision_plan', options: ['comment' => '监督计划'])]
 class SupervisionPlan implements \Stringable
@@ -33,10 +30,10 @@ class SupervisionPlan implements \Stringable
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '计划类型：定期、专项、随机'])]
     private string $planType;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '计划开始日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '计划开始日期'])]
     private \DateTimeInterface $planStartDate;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '计划结束日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '计划结束日期'])]
     private \DateTimeInterface $planEndDate;
 
     #[ORM\Column(type: Types::JSON, options: ['comment' => '监督范围'])]
@@ -49,10 +46,13 @@ class SupervisionPlan implements \Stringable
     private string $supervisor;
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '计划状态'])]
     private string $planStatus = '待执行';
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
-    private ?string $remarks = null;public function getId(): ?string
+    private ?string $remarks = null;
+
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -145,6 +145,12 @@ class SupervisionPlan implements \Stringable
         return $this;
     }
 
+    // Alias for backward compatibility
+    public function getStatus(): string
+    {
+        return $this->planStatus;
+    }
+
     public function getRemarks(): ?string
     {
         return $this->remarks;
@@ -184,4 +190,4 @@ class SupervisionPlan implements \Stringable
     {
         return $this->planName;
     }
-} 
+}

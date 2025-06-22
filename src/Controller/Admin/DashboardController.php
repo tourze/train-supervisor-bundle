@@ -30,7 +30,7 @@ class DashboardController extends AbstractDashboardController
     #[Route('/admin/supervision', name: 'admin_supervision')]
     public function index(): Response
     {
-        return $this->redirect($this->adminUrlGenerator->setController(\Aqacms\TrainSupervisorBundle\Controller\Admin\SupervisionPlanCrudController::class)->generateUrl());
+        return $this->redirect($this->adminUrlGenerator->setController(\Tourze\TrainSupervisorBundle\Controller\Admin\SupervisionPlanCrudController::class)->generateUrl());
     }
 
     public function configureDashboard(): Dashboard

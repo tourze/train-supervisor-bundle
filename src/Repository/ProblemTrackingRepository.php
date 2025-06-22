@@ -131,4 +131,19 @@ class ProblemTrackingRepository extends ServiceEntityRepository
 
         return ($corrected / $total) * 100;
     }
+
+    /**
+     * 按日期范围查找问题
+     */
+    public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('pt')
+            ->where('pt.discoveryDate >= :startDate')
+            ->andWhere('pt.discoveryDate <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('pt.discoveryDate', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 } 

@@ -7,14 +7,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionReportRepository;
 
 /**
  * 监督报告实体
  * 用于生成和管理各类监督报告
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: SupervisionReportRepository::class)]
 #[ORM\Table(name: 'job_training_supervision_report', options: ['comment' => '监督报告'])]
 class SupervisionReport implements \Stringable
@@ -27,15 +25,16 @@ class SupervisionReport implements \Stringable
     private ?string $id = null;
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '报告类型'])]
     private string $reportType;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '报告标题'])]
     private string $reportTitle;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '报告期间开始日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '报告期间开始日期'])]
     private \DateTimeInterface $reportPeriodStart;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '报告期间结束日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '报告期间结束日期'])]
     private \DateTimeInterface $reportPeriodEnd;
 
     #[ORM\Column(type: Types::JSON, options: ['comment' => '监督数据'])]
@@ -51,12 +50,13 @@ class SupervisionReport implements \Stringable
     private array $statisticsData = [];
 
     #[IndexColumn]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '报告状态'])]
     private string $reportStatus = '草稿';
 
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '报告人'])]
     private string $reporter;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '报告日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '报告日期'])]
     private \DateTimeInterface $reportDate;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '报告内容'])]
@@ -66,7 +66,9 @@ class SupervisionReport implements \Stringable
     private ?array $attachments = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
-    private ?string $remarks = null;public function getId(): ?string
+    private ?string $remarks = null;
+
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -278,11 +280,11 @@ class SupervisionReport implements \Stringable
      */
     public function getAttachmentCount(): int
     {
-        return $this->attachments ? count($this->attachments) : 0;
+        return ($this->attachments !== null) ? count($this->attachments) : 0;
     }
 
     public function __toString(): string
     {
         return sprintf('%s - %s', $this->reportType, $this->reportTitle);
     }
-} 
+}

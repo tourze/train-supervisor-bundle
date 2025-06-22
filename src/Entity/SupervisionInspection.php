@@ -2,25 +2,24 @@
 
 namespace Tourze\TrainSupervisorBundle\Entity;
 
-use AppBundle\Entity\Supplier;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Exportable;
+use Tourze\TrainCourseBundle\Trait\SupplierAware;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionInspectionRepository;
 
 /**
  * 监督检查实体
  * 用于记录培训机构的监督检查过程和结果
  */
-#[Exportable]
 #[ORM\Entity(repositoryClass: SupervisionInspectionRepository::class)]
 #[ORM\Table(name: 'job_training_supervision_inspection', options: ['comment' => '监督检查'])]
 class SupervisionInspection implements \Stringable
 {
     use TimestampableAware;
+    use SupplierAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -31,14 +30,13 @@ class SupervisionInspection implements \Stringable
     #[ORM\JoinColumn(nullable: false)]
     private SupervisionPlan $plan;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private Supplier $institution;
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '机构名称'])]
+    private string $institutionName;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '检查类型：现场检查、在线检查、专项检查'])]
     private string $inspectionType;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '检查日期'])]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '检查日期'])]
     private \DateTimeInterface $inspectionDate;
 
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '检查人'])]
@@ -53,8 +51,8 @@ class SupervisionInspection implements \Stringable
     #[ORM\Column(type: Types::JSON, options: ['comment' => '发现问题'])]
     private array $foundProblems = [];
 
-    #[IndexColumn]
-    private string $inspectionStatus = '进行中';
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '检查状态：计划中、进行中、已完成、已取消'])]
+    private string $inspectionStatus = 'planned';
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true, options: ['comment' => '总体评分'])]
     private ?float $overallScore = null;
@@ -62,8 +60,10 @@ class SupervisionInspection implements \Stringable
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '检查报告'])]
     private ?string $inspectionReport = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
-    private ?string $remarks = null;public function getId(): ?string
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注'])]
+    private ?string $remarks = null;
+
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -76,17 +76,19 @@ class SupervisionInspection implements \Stringable
     public function setPlan(SupervisionPlan $plan): static
     {
         $this->plan = $plan;
+
         return $this;
     }
 
-    public function getInstitution(): Supplier
+    public function getInstitutionName(): string
     {
-        return $this->institution;
+        return $this->institutionName;
     }
 
-    public function setInstitution(Supplier $institution): static
+    public function setInstitutionName(string $institutionName): static
     {
-        $this->institution = $institution;
+        $this->institutionName = $institutionName;
+
         return $this;
     }
 
@@ -98,6 +100,7 @@ class SupervisionInspection implements \Stringable
     public function setInspectionType(string $inspectionType): static
     {
         $this->inspectionType = $inspectionType;
+
         return $this;
     }
 
@@ -109,6 +112,7 @@ class SupervisionInspection implements \Stringable
     public function setInspectionDate(\DateTimeInterface $inspectionDate): static
     {
         $this->inspectionDate = $inspectionDate;
+
         return $this;
     }
 
@@ -120,6 +124,7 @@ class SupervisionInspection implements \Stringable
     public function setInspector(string $inspector): static
     {
         $this->inspector = $inspector;
+
         return $this;
     }
 
@@ -131,6 +136,7 @@ class SupervisionInspection implements \Stringable
     public function setInspectionItems(array $inspectionItems): static
     {
         $this->inspectionItems = $inspectionItems;
+
         return $this;
     }
 
@@ -142,6 +148,7 @@ class SupervisionInspection implements \Stringable
     public function setInspectionResults(array $inspectionResults): static
     {
         $this->inspectionResults = $inspectionResults;
+
         return $this;
     }
 
@@ -153,6 +160,7 @@ class SupervisionInspection implements \Stringable
     public function setFoundProblems(array $foundProblems): static
     {
         $this->foundProblems = $foundProblems;
+
         return $this;
     }
 
@@ -164,6 +172,7 @@ class SupervisionInspection implements \Stringable
     public function setInspectionStatus(string $inspectionStatus): static
     {
         $this->inspectionStatus = $inspectionStatus;
+
         return $this;
     }
 
@@ -175,6 +184,7 @@ class SupervisionInspection implements \Stringable
     public function setOverallScore(?float $overallScore): static
     {
         $this->overallScore = $overallScore;
+
         return $this;
     }
 
@@ -186,6 +196,7 @@ class SupervisionInspection implements \Stringable
     public function setInspectionReport(?string $inspectionReport): static
     {
         $this->inspectionReport = $inspectionReport;
+
         return $this;
     }
 
@@ -197,6 +208,7 @@ class SupervisionInspection implements \Stringable
     public function setRemarks(?string $remarks): static
     {
         $this->remarks = $remarks;
+
         return $this;
     }
 
@@ -205,11 +217,11 @@ class SupervisionInspection implements \Stringable
      */
     public function isCompleted(): bool
     {
-        return $this->inspectionStatus === '已完成';
+        return $this->inspectionStatus === 'completed';
     }
 
     /**
-     * 检查是否发现问题
+     * 是否有问题
      */
     public function hasProblems(): bool
     {
@@ -246,6 +258,6 @@ class SupervisionInspection implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('%s - %s', $this->institution->getName(), $this->inspectionDate->format('Y-m-d'));
+        return sprintf('%s - %s', $this->institutionName, $this->inspectionDate->format('Y-m-d'));
     }
-} 
+}
