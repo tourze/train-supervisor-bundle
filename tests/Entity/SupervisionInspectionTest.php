@@ -105,7 +105,7 @@ class SupervisionInspectionTest extends TestCase
         }
         
         // 测试完成状态
-        $inspection->setInspectionStatus('已完成');
+        $inspection->setInspectionStatus('completed');
         $this->assertTrue($inspection->isCompleted());
         
         $inspection->setInspectionStatus('进行中');

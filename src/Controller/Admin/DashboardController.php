@@ -28,7 +28,7 @@ class DashboardController extends AbstractDashboardController
     }
 
     #[Route('/admin/supervision', name: 'admin_supervision')]
-    public function index(): Response
+    public function __invoke(): Response
     {
         return $this->redirect($this->adminUrlGenerator->setController(\Tourze\TrainSupervisorBundle\Controller\Admin\SupervisionPlanCrudController::class)->generateUrl());
     }

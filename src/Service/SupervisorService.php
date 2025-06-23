@@ -195,8 +195,8 @@ class SupervisorService
             }
 
             // 检查人脸识别失败率异常（超过20%）
-            $successCount = $record->getFaceDetectSuccessCount() ?? 0;
-            $failCount = $record->getFaceDetectFailCount();
+            $successCount = (int) ($record->getFaceDetectSuccessCount() ?? 0);
+            $failCount = (int) ($record->getFaceDetectFailCount() ?? 0);
             $totalFaceDetect = $successCount + $failCount;
             if ($totalFaceDetect > 0) {
                 $faceFailRate = ($failCount / $totalFaceDetect) * 100;

@@ -7,7 +7,11 @@ use Symfony\Component\Config\Loader\Loader;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\Routing\RouteCollection;
 use Tourze\RoutingAutoLoaderBundle\Service\RoutingAutoLoaderInterface;
-use Tourze\TrainSupervisorBundle\Controller\LearningStatisticsWebController;
+use Tourze\TrainSupervisorBundle\Controller\LearningStatistics\IndexController;
+use Tourze\TrainSupervisorBundle\Controller\LearningStatistics\InstitutionDetailController;
+use Tourze\TrainSupervisorBundle\Controller\LearningStatistics\RealtimeController;
+use Tourze\TrainSupervisorBundle\Controller\LearningStatistics\ReportsController;
+use Tourze\TrainSupervisorBundle\Controller\LearningStatistics\TrendsController;
 
 #[AutoconfigureTag('routing.loader')]
 class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInterface
@@ -33,7 +37,11 @@ class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInter
     public function autoload(): RouteCollection
     {
         $collection = new RouteCollection();
-        $collection->addCollection($this->controllerLoader->load(LearningStatisticsWebController::class));
+        $collection->addCollection($this->controllerLoader->load(IndexController::class));
+        $collection->addCollection($this->controllerLoader->load(InstitutionDetailController::class));
+        $collection->addCollection($this->controllerLoader->load(RealtimeController::class));
+        $collection->addCollection($this->controllerLoader->load(ReportsController::class));
+        $collection->addCollection($this->controllerLoader->load(TrendsController::class));
         return $collection;
     }
 }
