@@ -19,7 +19,7 @@ class IndexController extends AbstractController
         private readonly LearningStatisticsService $statisticsService,
     ) {}
 
-    #[Route('/admin/learning-statistics', name: 'admin_learning_statistics_index', methods: ['GET'])]
+    #[Route(path: '/admin/learning-statistics', name: 'admin_learning_statistics_index', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
         $filters = $this->extractFilters($request);

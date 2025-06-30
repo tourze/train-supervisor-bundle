@@ -5,6 +5,8 @@ namespace Tourze\TrainSupervisorBundle\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Tourze\TrainSupervisorBundle\Entity\SupervisionInspection;
 use Tourze\TrainSupervisorBundle\Entity\SupervisionPlan;
+use Tourze\TrainSupervisorBundle\Exception\InspectionNotFoundException;
+use Tourze\TrainSupervisorBundle\Exception\SupervisionPlanNotFoundException;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionInspectionRepository;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionPlanRepository;
 
@@ -86,7 +88,7 @@ class InspectionService
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
         if ($inspection === null) {
-            throw new \InvalidArgumentException("检查任务不存在: {$inspectionId}");
+            throw new InspectionNotFoundException("检查任务不存在: {$inspectionId}");
         }
 
         // 更新检查信息
@@ -115,7 +117,7 @@ class InspectionService
     {
         $plan = $this->planRepository->find($planId);
         if ($plan === null) {
-            throw new \InvalidArgumentException("监督计划不存在: {$planId}");
+            throw new SupervisionPlanNotFoundException("监督计划不存在: {$planId}");
         }
 
         $inspection = new SupervisionInspection();
@@ -146,7 +148,7 @@ class InspectionService
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
         if ($inspection === null) {
-            throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
+            throw new InspectionNotFoundException("监督检查不存在: {$inspectionId}");
         }
 
         if (isset($results['inspectionResults'])) {
@@ -180,7 +182,7 @@ class InspectionService
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
         if ($inspection === null) {
-            throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
+            throw new InspectionNotFoundException("监督检查不存在: {$inspectionId}");
         }
 
         $inspectionResults = $inspection->getInspectionResults();
@@ -208,7 +210,7 @@ class InspectionService
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
         if ($inspection === null) {
-            throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
+            throw new InspectionNotFoundException("监督检查不存在: {$inspectionId}");
         }
 
         return [
@@ -250,7 +252,7 @@ class InspectionService
     {
         $inspection = $this->inspectionRepository->find($inspectionId);
         if ($inspection === null) {
-            throw new \InvalidArgumentException("监督检查不存在: {$inspectionId}");
+            throw new InspectionNotFoundException("监督检查不存在: {$inspectionId}");
         }
 
         $inspection->setInspectionStatus('已完成');

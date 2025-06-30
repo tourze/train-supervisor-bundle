@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 class StatisticsOverviewController extends AbstractController
 {
-    #[Route('/admin/supervision/statistics', name: 'admin_supervision_statistics')]
+    #[Route(path: '/admin/supervision/statistics', name: 'admin_supervision_statistics')]
     public function __invoke(): Response
     {
         return $this->render('@TrainSupervisor/admin/statistics.html.twig');

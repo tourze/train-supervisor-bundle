@@ -8,7 +8,7 @@ use Tourze\TrainSupervisorBundle\Entity\SupervisionReport;
 
 /**
  * 监督报告仓储类
- * 
+ *
  * @method SupervisionReport|null find($id, $lockMode = null, $lockVersion = null)
  * @method SupervisionReport|null findOneBy(array $criteria, array $orderBy = null)
  * @method SupervisionReport[]    findAll()

@@ -4,6 +4,7 @@ namespace Tourze\TrainSupervisorBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Tourze\TrainSupervisorBundle\Entity\QualityAssessment;
+use Tourze\TrainSupervisorBundle\Exception\QualityAssessmentNotFoundException;
 use Tourze\TrainSupervisorBundle\Repository\QualityAssessmentRepository;
 
 /**
@@ -93,7 +94,7 @@ class QualityAssessmentService
     {
         $assessment = $this->assessmentRepository->find($assessmentId);
         if ($assessment === null) {
-            throw new \InvalidArgumentException("质量评估不存在: {$assessmentId}");
+            throw new QualityAssessmentNotFoundException("质量评估不存在: {$assessmentId}");
         }
 
         return [
@@ -149,7 +150,7 @@ class QualityAssessmentService
     {
         $assessment = $this->assessmentRepository->find($assessmentId);
         if ($assessment === null) {
-            throw new \InvalidArgumentException("质量评估不存在: {$assessmentId}");
+            throw new QualityAssessmentNotFoundException("质量评估不存在: {$assessmentId}");
         }
 
         $assessment->setAssessmentStatus('已完成');

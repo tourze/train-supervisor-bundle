@@ -5,6 +5,7 @@ namespace Tourze\TrainSupervisorBundle\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainCourseBundle\Trait\SupplierAware;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionInspectionRepository;
@@ -19,12 +20,7 @@ class SupervisionInspection implements \Stringable
 {
     use TimestampableAware;
     use SupplierAware;
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[ORM\ManyToOne(targetEntity: SupervisionPlan::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -63,10 +59,6 @@ class SupervisionInspection implements \Stringable
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注'])]
     private ?string $remarks = null;
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getPlan(): SupervisionPlan
     {

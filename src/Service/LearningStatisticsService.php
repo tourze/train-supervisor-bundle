@@ -3,6 +3,7 @@
 namespace Tourze\TrainSupervisorBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Tourze\TrainSupervisorBundle\Exception\UnsupportedFormatException;
 
 /**
  * 学习统计服务
@@ -306,7 +307,7 @@ class LearningStatisticsService
             case 'pdf':
                 return $this->exportToPdf($statistics);
             default:
-                throw new \InvalidArgumentException('不支持的导出格式');
+                throw new UnsupportedFormatException('不支持的导出格式');
         }
     }
 

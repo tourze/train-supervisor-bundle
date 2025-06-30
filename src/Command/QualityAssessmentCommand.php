@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Tourze\TrainSupervisorBundle\Exception\UnsupportedFormatException;
 use Tourze\TrainSupervisorBundle\Service\QualityAssessmentService;
 
 /**
@@ -361,7 +362,7 @@ public function __construct(
                 $this->exportToCsv($data, $filename);
                 break;
             default:
-                throw new \InvalidArgumentException('不支持的文件格式，请使用 .json 或 .csv');
+                throw new UnsupportedFormatException('不支持的文件格式，请使用 .json 或 .csv');
         }
     }
 

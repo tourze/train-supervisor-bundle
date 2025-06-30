@@ -6,6 +6,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainSupervisorBundle\Repository\QualityAssessmentRepository;
 
@@ -18,11 +19,7 @@ use Tourze\TrainSupervisorBundle\Repository\QualityAssessmentRepository;
 class QualityAssessment implements \Stringable
 {
     use TimestampableAware;
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估类型'])]
@@ -67,10 +64,6 @@ class QualityAssessment implements \Stringable
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
     private ?string $remarks = null;
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getAssessmentType(): string
     {

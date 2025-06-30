@@ -4,6 +4,8 @@ namespace Tourze\TrainSupervisorBundle\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Tourze\TrainSupervisorBundle\Entity\SupervisionPlan;
+use Tourze\TrainSupervisorBundle\Exception\InvalidPlanStatusException;
+use Tourze\TrainSupervisorBundle\Exception\SupervisionPlanNotFoundException;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionPlanRepository;
 
 /**
@@ -47,7 +49,7 @@ class SupervisionPlanService
     {
         $plan = $this->planRepository->find($planId);
         if ($plan === null) {
-            throw new \InvalidArgumentException("监督计划不存在: {$planId}");
+            throw new SupervisionPlanNotFoundException("监督计划不存在: {$planId}");
         }
 
         if ((bool) isset($planData['planName'])) {
@@ -90,11 +92,11 @@ class SupervisionPlanService
     {
         $plan = $this->planRepository->find($planId);
         if ($plan === null) {
-            throw new \InvalidArgumentException("监督计划不存在: {$planId}");
+            throw new SupervisionPlanNotFoundException("监督计划不存在: {$planId}");
         }
 
         if (!$plan->isActive()) {
-            throw new \RuntimeException("监督计划状态不允许执行: {$plan->getPlanStatus()}");
+            throw new InvalidPlanStatusException("监督计划状态不允许执行: {$plan->getPlanStatus()}");
         }
 
         // 更新计划状态为执行中
@@ -127,7 +129,7 @@ class SupervisionPlanService
     {
         $plan = $this->planRepository->find($planId);
         if ($plan === null) {
-            throw new \InvalidArgumentException("监督计划不存在: {$planId}");
+            throw new SupervisionPlanNotFoundException("监督计划不存在: {$planId}");
         }
 
         return [
@@ -172,7 +174,7 @@ class SupervisionPlanService
     {
         $plan = $this->planRepository->find($planId);
         if ($plan === null) {
-            throw new \InvalidArgumentException("监督计划不存在: {$planId}");
+            throw new SupervisionPlanNotFoundException("监督计划不存在: {$planId}");
         }
 
         $plan->setPlanStatus('已完成');
@@ -188,7 +190,7 @@ class SupervisionPlanService
     {
         $plan = $this->planRepository->find($planId);
         if ($plan === null) {
-            throw new \InvalidArgumentException("监督计划不存在: {$planId}");
+            throw new SupervisionPlanNotFoundException("监督计划不存在: {$planId}");
         }
 
         $plan->setPlanStatus('已取消');

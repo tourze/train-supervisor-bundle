@@ -8,7 +8,7 @@ use Tourze\TrainSupervisorBundle\Entity\ProblemTracking;
 
 /**
  * 问题跟踪仓储类
- * 
+ *
  * @method ProblemTracking|null find($id, $lockMode = null, $lockVersion = null)
  * @method ProblemTracking|null findOneBy(array $criteria, array $orderBy = null)
  * @method ProblemTracking[]    findAll()

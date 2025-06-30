@@ -5,6 +5,7 @@ namespace Tourze\TrainSupervisorBundle\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Tourze\TrainSupervisorBundle\Entity\ProblemTracking;
 use Tourze\TrainSupervisorBundle\Entity\SupervisionInspection;
+use Tourze\TrainSupervisorBundle\Exception\InvalidProblemStatusException;
 use Tourze\TrainSupervisorBundle\Repository\ProblemTrackingRepository;
 
 /**
@@ -130,7 +131,7 @@ class ProblemTrackingService
     public function closeProblem(ProblemTracking $problem, ?string $remarks = null): void
     {
         if ($problem->getVerificationResult() !== '通过') {
-            throw new \InvalidArgumentException('只有验证通过的问题才能关闭');
+            throw new InvalidProblemStatusException('只有验证通过的问题才能关闭');
         }
 
         $problem->setCorrectionStatus('已关闭');

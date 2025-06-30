@@ -23,12 +23,17 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use Symfony\Component\HttpFoundation\Response;
 use Tourze\TrainSupervisorBundle\Entity\SupervisionPlan;
+use Tourze\TrainSupervisorBundle\Repository\SupervisionPlanRepository;
 
 /**
  * 监督计划管理控制器
  */
 class SupervisionPlanCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly SupervisionPlanRepository $planRepository
+    ) {}
+
     public static function getEntityFqcn(): string
     {
         return SupervisionPlan::class;
@@ -301,28 +306,21 @@ class SupervisionPlanCrudController extends AbstractCrudController
      */
     public function exportData(AdminContext $context): Response
     {
-        $repository = $this->container->get('doctrine')
-            ->getRepository(SupervisionPlan::class);
-        
-        $plans = $repository->findAll();
+        $plans = $this->planRepository->findAll();
         
         // 生成CSV数据
-        $csvData = "ID,标题,类型,状态,优先级,开始日期,结束日期,目标机构数,已完成机构数,进度,创建时间\n";
+        $csvData = "ID,计划名称,计划类型,计划状态,开始日期,结束日期,创建时间\n";
         
         foreach ($plans as $plan) {
             $csvData .= sprintf(
-                "%d,%s,%s,%s,%s,%s,%s,%d,%d,%.1f,%s\n",
+                "%s,%s,%s,%s,%s,%s,%s\n",
                 $plan->getId(),
-                $plan->getTitle(),
-                $plan->getType(),
-                $plan->getStatus(),
-                $plan->getPriority(),
-                $plan->getStartDate()->format('Y-m-d'),
-                $plan->getEndDate()->format('Y-m-d'),
-                $plan->getTargetInstitutions(),
-                $plan->getCompletedInstitutions(),
-                $plan->getProgress(),
-                $plan->getCreatedAt()->format('Y-m-d H:i:s')
+                $plan->getPlanName(),
+                $plan->getPlanType(),
+                $plan->getPlanStatus(),
+                $plan->getPlanStartDate()->format('Y-m-d'),
+                $plan->getPlanEndDate()->format('Y-m-d'),
+                $plan->getCreateTime()?->format('Y-m-d H:i:s') ?? ''
             );
         }
 

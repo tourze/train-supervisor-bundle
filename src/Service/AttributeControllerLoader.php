@@ -13,7 +13,7 @@ use Tourze\TrainSupervisorBundle\Controller\LearningStatistics\RealtimeControlle
 use Tourze\TrainSupervisorBundle\Controller\LearningStatistics\ReportsController;
 use Tourze\TrainSupervisorBundle\Controller\LearningStatistics\TrendsController;
 
-#[AutoconfigureTag('routing.loader')]
+#[AutoconfigureTag(name: 'routing.loader')]
 class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInterface
 {
     private AttributeRouteControllerLoader $controllerLoader;

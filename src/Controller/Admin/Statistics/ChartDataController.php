@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 class ChartDataController extends AbstractController
 {
-    #[Route('/admin/supervision/api/chart-data', name: 'admin_supervision_chart_data', methods: ['GET'])]
+    #[Route(path: '/admin/supervision/api/chart-data', name: 'admin_supervision_chart_data', methods: ['GET'])]
     public function __invoke(Request $request): JsonResponse
     {
         $type = $request->query->get('type');

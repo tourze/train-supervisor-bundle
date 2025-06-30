@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainCourseBundle\Trait\SupplierAware;
 use Tourze\TrainSupervisorBundle\Repository\SupervisorRepository;
@@ -18,13 +19,7 @@ class Supervisor implements Stringable
 {
     use TimestampableAware;
     use SupplierAware;
-
-    #[Groups(['restful_read', 'admin_curd', 'recursive_view', 'api_tree'])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '日期'])]
     private \DateTimeInterface $date;
@@ -50,11 +45,6 @@ class Supervisor implements Stringable
     #[ORM\Column(options: ['comment' => '人脸识别失败次数'])]
     private int $faceDetectFailCount = 0;
 
-    #[Groups(['restful_read', 'admin_curd', 'restful_read'])]
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getDate(): \DateTimeInterface
     {

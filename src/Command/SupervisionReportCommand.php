@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Tourze\TrainSupervisorBundle\Exception\UnsupportedFormatException;
 use Tourze\TrainSupervisorBundle\Service\ReportService;
 
 /**
@@ -287,7 +288,7 @@ public function __construct(
                     $this->exportToText($report, $exportFile);
                     break;
                 default:
-                    throw new \InvalidArgumentException('不支持的文件格式，请使用 .json, .txt 或 .md');
+                    throw new UnsupportedFormatException('不支持的文件格式，请使用 .json, .txt 或 .md');
             }
 
             $io->success(sprintf('报告已导出到: %s', $exportFile));

@@ -8,7 +8,7 @@ use Tourze\TrainSupervisorBundle\Entity\QualityAssessment;
 
 /**
  * 质量评估仓储类
- * 
+ *
  * @method QualityAssessment|null find($id, $lockMode = null, $lockVersion = null)
  * @method QualityAssessment|null findOneBy(array $criteria, array $orderBy = null)
  * @method QualityAssessment[]    findAll()

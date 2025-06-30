@@ -19,7 +19,7 @@ class InstitutionDetailController extends AbstractController
         private readonly LearningStatisticsService $statisticsService,
     ) {}
 
-    #[Route('/admin/learning-statistics/institution/{id}', name: 'admin_learning_statistics_institution', methods: ['GET'])]
+    #[Route(path: '/admin/learning-statistics/institution/{id}', name: 'admin_learning_statistics_institution', methods: ['GET'])]
     public function __invoke(string $id, Request $request): Response
     {
         $filters = array_merge($this->extractFilters($request), ['institution_id' => $id]);

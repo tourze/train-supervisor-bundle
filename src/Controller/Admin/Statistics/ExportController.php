@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 class ExportController extends AbstractController
 {
-    #[Route('/admin/supervision/export', name: 'admin_supervision_export')]
+    #[Route(path: '/admin/supervision/export', name: 'admin_supervision_export')]
     public function __invoke(): Response
     {
         return $this->render('@TrainSupervisor/admin/export.html.twig');

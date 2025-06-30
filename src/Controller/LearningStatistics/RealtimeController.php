@@ -19,7 +19,7 @@ class RealtimeController extends AbstractController
         private readonly LearningStatisticsService $statisticsService,
     ) {}
 
-    #[Route('/admin/learning-statistics/realtime', name: 'admin_learning_statistics_realtime', methods: ['GET'])]
+    #[Route(path: '/admin/learning-statistics/realtime', name: 'admin_learning_statistics_realtime', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
         $filters = $this->extractFilters($request);

@@ -19,7 +19,7 @@ class TrendsController extends AbstractController
         private readonly LearningStatisticsService $statisticsService,
     ) {}
 
-    #[Route('/admin/learning-statistics/trends', name: 'admin_learning_statistics_trends', methods: ['GET'])]
+    #[Route(path: '/admin/learning-statistics/trends', name: 'admin_learning_statistics_trends', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
         $filters = $this->extractFilters($request);
