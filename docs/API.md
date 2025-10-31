@@ -63,8 +63,8 @@ GET /api/v1/supervision-plans
             "resources": {"人员": 10, "预算": 100000},
             "criteria": {"质量": ">=80分"},
             "remarks": null,
-            "created_at": "2024-01-01T00:00:00Z",
-            "updated_at": "2024-01-01T00:00:00Z"
+            "create_time": "2024-01-01T00:00:00Z",
+            "update_time": "2024-01-01T00:00:00Z"
         }
     ],
     "meta": {
@@ -118,8 +118,8 @@ GET /api/v1/supervision-plans/{id}
                 "score": 85.5
             }
         ],
-        "created_at": "2024-01-01T00:00:00Z",
-        "updated_at": "2024-01-01T00:00:00Z"
+        "create_time": "2024-01-01T00:00:00Z",
+        "update_time": "2024-01-01T00:00:00Z"
     }
 }
 ```
@@ -157,7 +157,7 @@ POST /api/v1/supervision-plans
         "id": 1,
         "title": "2024年度培训监督计划",
         "status": "draft",
-        "created_at": "2024-01-01T00:00:00Z"
+        "create_time": "2024-01-01T00:00:00Z"
     },
     "message": "监督计划创建成功"
 }

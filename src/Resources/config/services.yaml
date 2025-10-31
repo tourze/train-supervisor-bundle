@@ -3,7 +3,21 @@ services:
   _defaults:
     autowire: true      # Automatically injects dependencies in your services.
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-    public: false
+    public: true
 
-#  Tourze\TrainSupervisorBundle\EventSubscriber\:
-#    resource: '../../EventSubscriber/'
+  # Register all services and commands
+  Tourze\TrainSupervisorBundle\Service\:
+    resource: '../../Service/'
+  Tourze\TrainSupervisorBundle\Command\:
+    resource: '../../Command/'
+  Tourze\TrainSupervisorBundle\Repository\:
+    resource: '../../Repository/'
+  Tourze\TrainSupervisorBundle\Controller\:
+    resource: '../../Controller/'
+    tags: ['controller.service_arguments']
+  Tourze\TrainSupervisorBundle\Helper\:
+    resource: '../../Helper/'
+  
+  # 为测试明确配置 AttributeControllerLoader 服务
+  Tourze\TrainSupervisorBundle\Service\AttributeControllerLoader:
+    public: true

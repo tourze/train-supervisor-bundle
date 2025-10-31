@@ -4,146 +4,193 @@ namespace Tourze\TrainSupervisorBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
-use Symfony\Component\Serializer\Attribute\Groups;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\TrainCourseBundle\Trait\SupplierAware;
 use Tourze\TrainSupervisorBundle\Repository\SupervisorRepository;
 
 #[ORM\Entity(repositoryClass: SupervisorRepository::class)]
-#[ORM\Table(name: 'job_training_supervisor', options: ['comment' => '监管明细'])]
-#[ORM\UniqueConstraint(name: 'job_training_supervisor_idx_uniq', columns: ['supplier_id', 'date'])]
-class Supervisor implements Stringable
+#[ORM\Table(name: 'train_supervisor', options: ['comment' => '监督员'])]
+class Supervisor implements \Stringable
 {
     use TimestampableAware;
-    use SupplierAware;
     use SnowflakeKeyAware;
 
-    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '日期'])]
-    private \DateTimeInterface $date;
+    #[Assert\NotBlank(message: '监督员姓名不能为空')]
+    #[Assert\Length(max: 100, maxMessage: '监督员姓名长度不能超过100个字符')]
+    #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '监督员姓名'])]
+    private ?string $supervisorName = null;
 
-    #[ORM\Column(options: ['comment' => '总开班数'])]
-    private int $totalClassroomCount = 0;
+    #[Assert\NotBlank(message: '监督员编号不能为空')]
+    #[Assert\Length(max: 50, maxMessage: '监督员编号长度不能超过50个字符')]
+    #[ORM\Column(type: Types::STRING, length: 50, unique: true, options: ['comment' => '监督员编号'])]
+    private ?string $supervisorCode = null;
 
-    #[ORM\Column(options: ['comment' => '新开班数'])]
-    private int $newClassroomCount = 0;
+    #[Assert\Length(max: 100, maxMessage: '所属部门长度不能超过100个字符')]
+    #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '所属部门'])]
+    private ?string $department = null;
 
-    #[ORM\Column(options: ['comment' => '登录人数'])]
-    private int $dailyLoginCount = 0;
+    #[Assert\Length(max: 100, maxMessage: '职位长度不能超过100个字符')]
+    #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '职位'])]
+    private ?string $position = null;
 
-    #[ORM\Column(options: ['comment' => '学习人数'])]
-    private int $dailyLearnCount = 0;
+    #[Assert\Length(max: 20, maxMessage: '联系电话长度不能超过20个字符')]
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: true, options: ['comment' => '联系电话'])]
+    private ?string $contactPhone = null;
 
-    #[ORM\Column(options: ['comment' => '作弊次数'])]
-    private int $dailyCheatCount = 0;
+    #[Assert\Email(message: '邮箱格式不正确')]
+    #[Assert\Length(max: 255, maxMessage: '联系邮箱长度不能超过255个字符')]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '联系邮箱'])]
+    private ?string $contactEmail = null;
 
-    #[ORM\Column(options: ['comment' => '人脸识别成功次数'])]
-    private int $faceDetectSuccessCount = 0;
+    #[Assert\NotBlank(message: '监督员级别不能为空')]
+    #[Assert\Length(max: 20, maxMessage: '监督员级别长度不能超过20个字符')]
+    #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '监督员级别'])]
+    private ?string $supervisorLevel = null;
 
-    #[ORM\Column(options: ['comment' => '人脸识别失败次数'])]
-    private int $faceDetectFailCount = 0;
+    #[Assert\NotBlank(message: '状态不能为空')]
+    #[Assert\Length(max: 20, maxMessage: '状态长度不能超过20个字符')]
+    #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '状态'])]
+    private ?string $supervisorStatus = null;
 
+    #[Assert\Length(max: 65535, maxMessage: '专业领域长度不能超过65535个字符')]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '专业领域'])]
+    private ?string $specialties = null;
 
-    public function getDate(): \DateTimeInterface
+    #[Assert\Length(max: 65535, maxMessage: '资质证书长度不能超过65535个字符')]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '资质证书'])]
+    private ?string $qualifications = null;
+
+    #[Assert\Length(max: 65535, maxMessage: '工作经历长度不能超过65535个字符')]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '工作经历'])]
+    private ?string $workExperience = null;
+
+    #[Assert\Length(max: 65535, maxMessage: '备注长度不能超过65535个字符')]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注'])]
+    private ?string $remarks = null;
+
+    public function getSupervisorName(): ?string
     {
-        return $this->date;
+        return $this->supervisorName;
     }
 
-    public function setDate(\DateTimeInterface $date): static
+    public function setSupervisorName(?string $supervisorName): void
     {
-        $this->date = $date;
-
-        return $this;
+        $this->supervisorName = $supervisorName;
     }
 
-    public function getTotalClassroomCount(): int
+    public function getSupervisorCode(): ?string
     {
-        return $this->totalClassroomCount;
+        return $this->supervisorCode;
     }
 
-    public function setTotalClassroomCount(int $totalClassroomCount): static
+    public function setSupervisorCode(?string $supervisorCode): void
     {
-        $this->totalClassroomCount = $totalClassroomCount;
-
-        return $this;
+        $this->supervisorCode = $supervisorCode;
     }
 
-    public function getNewClassroomCount(): int
+    public function getDepartment(): ?string
     {
-        return $this->newClassroomCount;
+        return $this->department;
     }
 
-    public function setNewClassroomCount(int $newClassroomCount): static
+    public function setDepartment(?string $department): void
     {
-        $this->newClassroomCount = $newClassroomCount;
-
-        return $this;
+        $this->department = $department;
     }
 
-    public function getDailyLearnCount(): int
+    public function getPosition(): ?string
     {
-        return $this->dailyLearnCount;
+        return $this->position;
     }
 
-    public function setDailyLearnCount(int $dailyLearnCount): static
+    public function setPosition(?string $position): void
     {
-        $this->dailyLearnCount = $dailyLearnCount;
-
-        return $this;
+        $this->position = $position;
     }
 
-    public function getDailyCheatCount(): int
+    public function getContactPhone(): ?string
     {
-        return $this->dailyCheatCount;
+        return $this->contactPhone;
     }
 
-    public function setDailyCheatCount(int $dailyCheatCount): static
+    public function setContactPhone(?string $contactPhone): void
     {
-        $this->dailyCheatCount = $dailyCheatCount;
-
-        return $this;
+        $this->contactPhone = $contactPhone;
     }
 
-    public function getDailyLoginCount(): int
+    public function getContactEmail(): ?string
     {
-        return $this->dailyLoginCount;
+        return $this->contactEmail;
     }
 
-    public function setDailyLoginCount(int $dailyLoginCount): static
+    public function setContactEmail(?string $contactEmail): void
     {
-        $this->dailyLoginCount = $dailyLoginCount;
-
-        return $this;
+        $this->contactEmail = $contactEmail;
     }
 
-    public function getFaceDetectSuccessCount(): ?int
+    public function getSupervisorLevel(): ?string
     {
-        return $this->faceDetectSuccessCount;
+        return $this->supervisorLevel;
     }
 
-    public function setFaceDetectSuccessCount(int $faceDetectSuccessCount): static
+    public function setSupervisorLevel(?string $supervisorLevel): void
     {
-        $this->faceDetectSuccessCount = $faceDetectSuccessCount;
-
-        return $this;
+        $this->supervisorLevel = $supervisorLevel;
     }
 
-    public function getFaceDetectFailCount(): int
+    public function getSupervisorStatus(): ?string
     {
-        return $this->faceDetectFailCount;
+        return $this->supervisorStatus;
     }
 
-    public function setFaceDetectFailCount(int $faceDetectFailCount): static
+    public function setSupervisorStatus(?string $supervisorStatus): void
     {
-        $this->faceDetectFailCount = $faceDetectFailCount;
+        $this->supervisorStatus = $supervisorStatus;
+    }
 
-        return $this;
+    public function getSpecialties(): ?string
+    {
+        return $this->specialties;
+    }
+
+    public function setSpecialties(?string $specialties): void
+    {
+        $this->specialties = $specialties;
+    }
+
+    public function getQualifications(): ?string
+    {
+        return $this->qualifications;
+    }
+
+    public function setQualifications(?string $qualifications): void
+    {
+        $this->qualifications = $qualifications;
+    }
+
+    public function getWorkExperience(): ?string
+    {
+        return $this->workExperience;
+    }
+
+    public function setWorkExperience(?string $workExperience): void
+    {
+        $this->workExperience = $workExperience;
+    }
+
+    public function getRemarks(): ?string
+    {
+        return $this->remarks;
+    }
+
+    public function setRemarks(?string $remarks): void
+    {
+        $this->remarks = $remarks;
     }
 
     public function __toString(): string
     {
-        return (string) $this->id;
+        return $this->supervisorName ?? (string) $this->id;
     }
 }

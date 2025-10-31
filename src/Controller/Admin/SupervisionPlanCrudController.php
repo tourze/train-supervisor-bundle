@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tourze\TrainSupervisorBundle\Controller\Admin;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -11,12 +15,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
@@ -26,13 +27,17 @@ use Tourze\TrainSupervisorBundle\Entity\SupervisionPlan;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionPlanRepository;
 
 /**
- * 监督计划管理控制器
+ * 监督计划管理控制器.
+ *
+ * @extends AbstractCrudController<SupervisionPlan>
  */
-class SupervisionPlanCrudController extends AbstractCrudController
+#[AdminCrud(routePath: '/train-supervisor/supervision-plan', routeName: 'train_supervisor_supervision_plan')]
+final class SupervisionPlanCrudController extends AbstractCrudController
 {
     public function __construct(
-        private readonly SupervisionPlanRepository $planRepository
-    ) {}
+        private readonly SupervisionPlanRepository $planRepository,
+    ) {
+    }
 
     public static function getEntityFqcn(): string
     {
@@ -48,11 +53,12 @@ class SupervisionPlanCrudController extends AbstractCrudController
             ->setPageTitle('new', '创建监督计划')
             ->setPageTitle('edit', '编辑监督计划')
             ->setPageTitle('detail', '监督计划详情')
-            ->setDefaultSort(['createdAt' => 'DESC'])
+            ->setDefaultSort(['createTime' => 'DESC'])
             ->setPaginatorPageSize(20)
-            ->setSearchFields(['title', 'description', 'institutionName'])
+            ->setSearchFields(['planName', 'remarks'])
             ->setDateTimeFormat('Y-m-d H:i:s')
-            ->setTimezone('Asia/Shanghai');
+            ->setTimezone('Asia/Shanghai')
+        ;
     }
 
     public function configureFields(string $pageName): iterable
@@ -61,141 +67,88 @@ class SupervisionPlanCrudController extends AbstractCrudController
             IdField::new('id', 'ID')
                 ->hideOnForm(),
 
-            TextField::new('title', '计划标题')
+            TextField::new('planName', '计划名称')
                 ->setRequired(true)
                 ->setMaxLength(255)
-                ->setHelp('监督计划的标题'),
+                ->setHelp('监督计划的名称'),
 
-            TextareaField::new('description', '计划描述')
-                ->setMaxLength(1000)
+            TextareaField::new('remarks', '备注')
+                ->setMaxLength(65535)
                 ->hideOnIndex(),
 
-            ChoiceField::new('type', '计划类型')
+            ChoiceField::new('planType', '计划类型')
                 ->setChoices([
-                    '年度计划' => 'annual',
-                    '季度计划' => 'quarterly', 
-                    '月度计划' => 'monthly',
-                    '专项计划' => 'special'
+                    '定期' => '定期',
+                    '专项' => '专项',
+                    '随机' => '随机',
                 ])
                 ->setRequired(true),
 
-            ChoiceField::new('status', '状态')
+            ChoiceField::new('planStatus', '计划状态')
                 ->setChoices([
-                    '草稿' => 'draft',
-                    '活跃' => 'active',
-                    '已完成' => 'completed',
-                    '已取消' => 'cancelled'
+                    '待执行' => '待执行',
+                    '执行中' => '执行中',
+                    '已完成' => '已完成',
+                    '已取消' => '已取消',
                 ])
                 ->setRequired(true)
                 ->renderAsBadges([
-                    'draft' => 'secondary',
-                    'active' => 'success',
-                    'completed' => 'primary',
-                    'cancelled' => 'danger'
+                    '待执行' => 'secondary',
+                    '执行中' => 'success',
+                    '已完成' => 'primary',
+                    '已取消' => 'danger',
                 ]),
 
-            ChoiceField::new('priority', '优先级')
-                ->setChoices([
-                    '低' => 'low',
-                    '中' => 'medium',
-                    '高' => 'high',
-                    '紧急' => 'urgent'
-                ])
+            DateTimeField::new('planStartDate', '计划开始日期')
                 ->setRequired(true)
-                ->renderAsBadges([
-                    'low' => 'light',
-                    'medium' => 'info',
-                    'high' => 'warning',
-                    'urgent' => 'danger'
-                ]),
+                ->setFormat('yyyy-MM-dd'),
 
-            DateTimeField::new('startDate', '开始日期')
+            DateTimeField::new('planEndDate', '计划结束日期')
                 ->setRequired(true)
-                ->setFormat('Y-m-d'),
+                ->setFormat('yyyy-MM-dd'),
 
-            DateTimeField::new('endDate', '结束日期')
-                ->setRequired(true)
-                ->setFormat('Y-m-d'),
-
-            IntegerField::new('targetInstitutions', '目标机构数')
-                ->setRequired(true)
-                ->hideOnIndex(),
-
-            IntegerField::new('completedInstitutions', '已完成机构数')
-                ->hideOnForm(),
-
-            NumberField::new('progress', '进度(%)')
-                ->setNumDecimals(1)
-                ->hideOnForm()
-                ->formatValue(function ($value) {
-                    return $value . '%';
-                }),
-
-            ArrayField::new('objectives', '监督目标')
-                ->hideOnIndex()
-                ->setHelp('监督计划的具体目标'),
-
-            ArrayField::new('scope', '监督范围')
+            ArrayField::new('supervisionScope', '监督范围')
                 ->hideOnIndex()
                 ->setHelp('监督覆盖的机构或区域'),
 
-            ArrayField::new('methods', '监督方法')
+            ArrayField::new('supervisionItems', '监督项目')
                 ->hideOnIndex()
-                ->setHelp('采用的监督方法'),
+                ->setHelp('具体的监督项目'),
 
-            ArrayField::new('resources', '资源配置')
-                ->hideOnIndex()
-                ->setHelp('人员、预算等资源配置'),
+            TextField::new('supervisor', '监督人')
+                ->setRequired(true)
+                ->setMaxLength(100),
 
-            ArrayField::new('criteria', '评估标准')
-                ->hideOnIndex()
-                ->setHelp('监督评估的标准'),
-
-            TextareaField::new('remarks', '备注')
-                ->hideOnIndex()
-                ->setMaxLength(500),
-
-            AssociationField::new('inspections', '相关检查')
+            DateTimeField::new('createTime', '创建时间')
                 ->hideOnForm()
-                ->setTemplatePath('admin/supervision_plan/inspections.html.twig'),
+                ->setFormat('yyyy-MM-dd HH:mm:ss'),
 
-            DateTimeField::new('createdAt', '创建时间')
+            DateTimeField::new('updateTime', '更新时间')
                 ->hideOnForm()
-                ->setFormat('Y-m-d H:i:s'),
-
-            DateTimeField::new('updatedAt', '更新时间')
-                ->hideOnForm()
-                ->setFormat('Y-m-d H:i:s')
+                ->setFormat('yyyy-MM-dd HH:mm:ss'),
         ];
     }
 
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add(ChoiceFilter::new('type', '计划类型')
+            ->add(ChoiceFilter::new('planType', '计划类型')
                 ->setChoices([
-                    '年度计划' => 'annual',
-                    '季度计划' => 'quarterly',
-                    '月度计划' => 'monthly',
-                    '专项计划' => 'special'
+                    '定期' => '定期',
+                    '专项' => '专项',
+                    '随机' => '随机',
                 ]))
-            ->add(ChoiceFilter::new('status', '状态')
+            ->add(ChoiceFilter::new('planStatus', '计划状态')
                 ->setChoices([
-                    '草稿' => 'draft',
-                    '活跃' => 'active',
-                    '已完成' => 'completed',
-                    '已取消' => 'cancelled'
+                    '待执行' => '待执行',
+                    '执行中' => '执行中',
+                    '已完成' => '已完成',
+                    '已取消' => '已取消',
                 ]))
-            ->add(ChoiceFilter::new('priority', '优先级')
-                ->setChoices([
-                    '低' => 'low',
-                    '中' => 'medium',
-                    '高' => 'high',
-                    '紧急' => 'urgent'
-                ]))
-            ->add(DateTimeFilter::new('startDate', '开始日期'))
-            ->add(DateTimeFilter::new('endDate', '结束日期'))
-            ->add(DateTimeFilter::new('createdAt', '创建时间'));
+            ->add(DateTimeFilter::new('planStartDate', '计划开始日期'))
+            ->add(DateTimeFilter::new('planEndDate', '计划结束日期'))
+            ->add(DateTimeFilter::new('createTime', '创建时间'))
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
@@ -203,33 +156,38 @@ class SupervisionPlanCrudController extends AbstractCrudController
         $activateAction = Action::new('activate', '激活计划', 'fas fa-play')
             ->linkToCrudAction('activatePlan')
             ->displayIf(function (SupervisionPlan $plan) {
-                return $plan->getStatus() === 'draft';
+                return '待执行' === $plan->getPlanStatus();
             })
-            ->setCssClass('btn btn-success');
+            ->setCssClass('btn btn-success')
+        ;
 
         $completeAction = Action::new('complete', '完成计划', 'fas fa-check')
             ->linkToCrudAction('completePlan')
             ->displayIf(function (SupervisionPlan $plan) {
-                return $plan->getStatus() === 'active';
+                return '执行中' === $plan->getPlanStatus();
             })
-            ->setCssClass('btn btn-primary');
+            ->setCssClass('btn btn-primary')
+        ;
 
         $cancelAction = Action::new('cancel', '取消计划', 'fas fa-times')
             ->linkToCrudAction('cancelPlan')
             ->displayIf(function (SupervisionPlan $plan) {
-                return in_array($plan->getStatus(), ['draft', 'active']);
+                return in_array($plan->getPlanStatus(), ['待执行', '执行中'], true);
             })
-            ->setCssClass('btn btn-danger');
+            ->setCssClass('btn btn-danger')
+        ;
 
         $exportAction = Action::new('export', '导出数据', 'fas fa-download')
             ->linkToCrudAction('exportData')
             ->createAsGlobalAction()
-            ->setCssClass('btn btn-info');
+            ->setCssClass('btn btn-info')
+        ;
 
         $statisticsAction = Action::new('statistics', '统计报告', 'fas fa-chart-bar')
             ->linkToRoute('admin_supervision_statistics')
             ->createAsGlobalAction()
-            ->setCssClass('btn btn-warning');
+            ->setCssClass('btn btn-warning')
+        ;
 
         return $actions
             ->add(Crud::PAGE_INDEX, $activateAction)
@@ -239,78 +197,122 @@ class SupervisionPlanCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, $statisticsAction)
             ->add(Crud::PAGE_DETAIL, $activateAction)
             ->add(Crud::PAGE_DETAIL, $completeAction)
-            ->add(Crud::PAGE_DETAIL, $cancelAction);
+            ->add(Crud::PAGE_DETAIL, $cancelAction)
+        ;
     }
 
     /**
-     * 激活监督计划
+     * 激活监督计划.
      */
+    #[AdminAction(routeName: 'activate_plan', routePath: '{entityId}/activate-plan')]
     public function activatePlan(AdminContext $context): Response
     {
         $plan = $context->getEntity()->getInstance();
-        
-        if ($plan->getStatus() !== 'draft') {
-            $this->addFlash('danger', '只能激活草稿状态的计划');
-            return $this->redirect($context->getReferrer());
+
+        if (!$plan instanceof SupervisionPlan) {
+            $this->addFlash('danger', '计划不存在');
+
+            return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
         }
 
-        $plan->setStatus('active');
-        $this->container->get('doctrine')->getManager()->flush();
+        if ('待执行' !== $plan->getPlanStatus()) {
+            $this->addFlash('danger', '只能激活待执行状态的计划');
+
+            return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
+        }
+
+        $plan->setPlanStatus('执行中');
+
+        $doctrine = $this->container->get('doctrine');
+        assert($doctrine instanceof Registry);
+        $entityManager = $doctrine->getManager();
+        assert($entityManager instanceof EntityManagerInterface);
+        $entityManager->flush();
 
         $this->addFlash('success', '监督计划已激活');
-        return $this->redirect($context->getReferrer());
+
+        return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
     }
 
     /**
-     * 完成监督计划
+     * 完成监督计划.
      */
+    #[AdminAction(routeName: 'complete_plan', routePath: '{entityId}/complete-plan')]
     public function completePlan(AdminContext $context): Response
     {
         $plan = $context->getEntity()->getInstance();
-        
-        if ($plan->getStatus() !== 'active') {
-            $this->addFlash('danger', '只能完成活跃状态的计划');
-            return $this->redirect($context->getReferrer());
+
+        if (!$plan instanceof SupervisionPlan) {
+            $this->addFlash('danger', '计划不存在');
+
+            return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
         }
 
-        $plan->setStatus('completed');
-        $plan->setProgress(100.0);
-        $this->container->get('doctrine')->getManager()->flush();
+        if ('执行中' !== $plan->getPlanStatus()) {
+            $this->addFlash('danger', '只能完成执行中状态的计划');
+
+            return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
+        }
+
+        $plan->setPlanStatus('已完成');
+
+        $doctrine = $this->container->get('doctrine');
+        assert($doctrine instanceof Registry);
+        $entityManager = $doctrine->getManager();
+        assert($entityManager instanceof EntityManagerInterface);
+        $entityManager->flush();
 
         $this->addFlash('success', '监督计划已完成');
-        return $this->redirect($context->getReferrer());
+
+        return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
     }
 
     /**
-     * 取消监督计划
+     * 取消监督计划.
      */
+    #[AdminAction(routeName: 'cancel_plan', routePath: '{entityId}/cancel-plan')]
     public function cancelPlan(AdminContext $context): Response
     {
         $plan = $context->getEntity()->getInstance();
-        
-        if (!in_array($plan->getStatus(), ['draft', 'active'])) {
-            $this->addFlash('danger', '只能取消草稿或活跃状态的计划');
-            return $this->redirect($context->getReferrer());
+
+        if (!$plan instanceof SupervisionPlan) {
+            $this->addFlash('danger', '计划不存在');
+
+            return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
         }
 
-        $plan->setStatus('cancelled');
+        if (!in_array($plan->getPlanStatus(), ['待执行', '执行中'], true)) {
+            $this->addFlash('danger', '只能取消待执行或执行中状态的计划');
+
+            return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
+        }
+
+        $plan->setPlanStatus('已取消');
         $plan->setRemarks('管理员手动取消');
-        $this->container->get('doctrine')->getManager()->flush();
+
+        $doctrine = $this->container->get('doctrine');
+        assert($doctrine instanceof Registry);
+        $entityManager = $doctrine->getManager();
+        assert($entityManager instanceof EntityManagerInterface);
+        $entityManager->flush();
 
         $this->addFlash('warning', '监督计划已取消');
-        return $this->redirect($context->getReferrer());
+
+        return $this->redirect($context->getRequest()->headers->get('referer') ?? $this->generateUrl('admin'));
     }
 
     /**
-     * 导出数据
+     * 导出数据.
      */
+    #[AdminAction(routeName: 'export_data', routePath: '/export-data')]
     public function exportData(AdminContext $context): Response
     {
+        /** @var SupervisionPlan[] $plans */
         $plans = $this->planRepository->findAll();
-        
+
         // 生成CSV数据
         $csvData = "ID,计划名称,计划类型,计划状态,开始日期,结束日期,创建时间\n";
-        
+
         foreach ($plans as $plan) {
             $csvData .= sprintf(
                 "%s,%s,%s,%s,%s,%s,%s\n",
@@ -327,7 +329,7 @@ class SupervisionPlanCrudController extends AbstractCrudController
         $response = new Response($csvData);
         $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
         $response->headers->set('Content-Disposition', 'attachment; filename="supervision_plans_' . date('Y-m-d') . '.csv"');
-        
+
         return $response;
     }
-} 
+}

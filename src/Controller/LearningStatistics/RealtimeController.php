@@ -11,13 +11,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Tourze\TrainSupervisorBundle\Service\LearningStatisticsService;
 
 /**
- * 实时数据控制器
+ * 实时数据控制器.
  */
-class RealtimeController extends AbstractController
+final class RealtimeController extends AbstractController
 {
     public function __construct(
         private readonly LearningStatisticsService $statisticsService,
-    ) {}
+    ) {
+    }
 
     #[Route(path: '/admin/learning-statistics/realtime', name: 'admin_learning_statistics_realtime', methods: ['GET'])]
     public function __invoke(Request $request): Response
@@ -33,12 +34,15 @@ class RealtimeController extends AbstractController
             ]);
         } catch (\Throwable $e) {
             $this->addFlash('danger', '获取实时数据失败：' . $e->getMessage());
+
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
     }
 
     /**
-     * 从请求中提取过滤条件
+     * 从请求中提取过滤条件.
+     *
+     * @return array<string, mixed>
      */
     private function extractFilters(Request $request): array
     {
@@ -49,7 +53,10 @@ class RealtimeController extends AbstractController
             $filters['institution_id'] = $request->query->get('institution_id');
         }
         if ($request->query->has('institution_ids')) {
-            $filters['institution_ids'] = explode(',', $request->query->get('institution_ids'));
+            $institutionIds = $request->query->get('institution_ids');
+            if (is_string($institutionIds) && '' !== $institutionIds) {
+                $filters['institution_ids'] = explode(',', $institutionIds);
+            }
         }
 
         // 区域条件

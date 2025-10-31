@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tourze\TrainSupervisorBundle\Controller\Admin;
 
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
+use EasyCorp\Bundle\EasyAdminBundle\Contracts\Field\FieldInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,19 +21,19 @@ use Tourze\TrainSupervisorBundle\Entity\SupervisionReport;
 use Tourze\TrainSupervisorBundle\Entity\Supervisor;
 
 /**
- * 培训监督管理仪表板控制器
+ * 培训监督管理仪表板控制器.
  */
-class DashboardController extends AbstractDashboardController
+final class DashboardController extends AbstractDashboardController
 {
     public function __construct(
-        private readonly AdminUrlGenerator $adminUrlGenerator
+        private readonly AdminUrlGenerator $adminUrlGenerator,
     ) {
     }
 
     #[Route(path: '/admin/supervision', name: 'admin_supervision')]
     public function __invoke(): Response
     {
-        return $this->redirect($this->adminUrlGenerator->setController(\Tourze\TrainSupervisorBundle\Controller\Admin\SupervisionPlanCrudController::class)->generateUrl());
+        return $this->redirect($this->adminUrlGenerator->setController(SupervisionPlanCrudController::class)->generateUrl());
     }
 
     public function configureDashboard(): Dashboard
@@ -43,7 +46,8 @@ class DashboardController extends AbstractDashboardController
             ->renderContentMaximized()
             ->renderSidebarMinimized()
             ->disableUrlSignatures()
-            ->generateRelativeUrls();
+            ->generateRelativeUrls()
+        ;
     }
 
     public function configureMenuItems(): iterable
@@ -78,4 +82,22 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('数据导出');
         yield MenuItem::linkToRoute('导出数据', 'fa fa-download', 'admin_supervision_export');
     }
-} 
+
+    /**
+     * @return iterable<FieldInterface>
+     */
+    public function configureFields(): iterable
+    {
+        return [];
+    }
+
+    public function configureFilters(): Filters
+    {
+        return Filters::new();
+    }
+
+    public function configureCrud(): Crud
+    {
+        return Crud::new();
+    }
+}

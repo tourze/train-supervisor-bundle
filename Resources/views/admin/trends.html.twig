@@ -1,0 +1,111 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}趋势分析{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>培训监督趋势分析</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-chart-line"></i>
+                        趋势分析功能正在开发中...
+                    </div>
+                    
+                    {# 筛选表单 #}
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label for="startDate" class="form-label">开始日期</label>
+                            <input type="date" class="form-control" id="startDate" name="start_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="endDate" class="form-label">结束日期</label>
+                            <input type="date" class="form-control" id="endDate" name="end_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="period" class="form-label">统计周期</label>
+                            <select class="form-select" id="period" name="period">
+                                <option value="daily">按天</option>
+                                <option value="weekly">按周</option>
+                                <option value="monthly">按月</option>
+                                <option value="yearly">按年</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="metric" class="form-label">指标类型</label>
+                            <select class="form-select" id="metric" name="metric">
+                                <option value="inspection_count">检查次数</option>
+                                <option value="problem_count">问题数量</option>
+                                <option value="anomaly_count">异常次数</option>
+                                <option value="correction_rate">整改率</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    {# 图表容器 #}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>趋势图表</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trendChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    {# 统计摘要 #}
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">总检查次数</h5>
+                                    <h2 id="totalInspections">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">发现问题数</h5>
+                                    <h2 id="totalProblems">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">异常次数</h5>
+                                    <h2 id="totalAnomalies">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">整改率</h5>
+                                    <h2 id="correctionRate">-</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block body_javascript %}
+<script>
+// 这里可以添加图表初始化和数据加载的JavaScript代码
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化图表
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    
+    // 这里应该加载实际数据
+    console.log('趋势分析页面已加载');
+});
+</script>
+{% endblock %}

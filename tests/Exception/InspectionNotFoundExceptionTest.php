@@ -2,15 +2,20 @@
 
 namespace Tourze\TrainSupervisorBundle\Tests\Exception;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitBase\AbstractExceptionTestCase;
 use Tourze\TrainSupervisorBundle\Exception\InspectionNotFoundException;
 
-class InspectionNotFoundExceptionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(InspectionNotFoundException::class)]
+final class InspectionNotFoundExceptionTest extends AbstractExceptionTestCase
 {
     public function testItExtendsInvalidArgumentException(): void
     {
         $exception = new InspectionNotFoundException();
-        
+
         $this->assertInstanceOf(\InvalidArgumentException::class, $exception);
     }
 
@@ -18,7 +23,7 @@ class InspectionNotFoundExceptionTest extends TestCase
     {
         $message = 'Inspection with ID 123 not found';
         $exception = new InspectionNotFoundException($message);
-        
+
         $this->assertSame($message, $exception->getMessage());
     }
 
@@ -27,7 +32,7 @@ class InspectionNotFoundExceptionTest extends TestCase
         $message = 'Inspection not found';
         $code = 404;
         $exception = new InspectionNotFoundException($message, $code);
-        
+
         $this->assertSame($message, $exception->getMessage());
         $this->assertSame($code, $exception->getCode());
     }
@@ -36,7 +41,7 @@ class InspectionNotFoundExceptionTest extends TestCase
     {
         $previous = new \Exception('Previous exception');
         $exception = new InspectionNotFoundException('Inspection not found', 0, $previous);
-        
+
         $this->assertSame($previous, $exception->getPrevious());
     }
 }

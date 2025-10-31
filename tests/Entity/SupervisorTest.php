@@ -2,11 +2,29 @@
 
 namespace Tourze\TrainSupervisorBundle\Tests\Entity;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use Tourze\TrainSupervisorBundle\Entity\Supervisor;
 
-class SupervisorTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Supervisor::class)]
+final class SupervisorTest extends AbstractEntityTestCase
 {
+    protected function createEntity(): object
+    {
+        return new Supervisor();
+    }
+
+    public static function propertiesProvider(): iterable
+    {
+        return [
+            'createTime' => ['createTime', new \DateTimeImmutable()],
+            'updateTime' => ['updateTime', new \DateTimeImmutable()],
+        ];
+    }
+
     private Supervisor $supervisor;
 
     protected function setUp(): void
@@ -14,175 +32,199 @@ class SupervisorTest extends TestCase
         $this->supervisor = new Supervisor();
     }
 
-    public function testSetAndGetDate(): void
+    public function testCanBeCreated(): void
     {
-        $date = new \DateTimeImmutable('2024-01-15');
-        
-        $result = $this->supervisor->setDate($date);
-        
-        $this->assertSame($this->supervisor, $result);
-        $this->assertSame($date, $this->supervisor->getDate());
+        $this->assertInstanceOf(Supervisor::class, $this->supervisor);
     }
 
-    public function testSetAndGetTotalClassroomCount(): void
+    public function testSupervisorNameGetterAndSetter(): void
     {
-        $count = 150;
-        
-        $result = $this->supervisor->setTotalClassroomCount($count);
-        
-        $this->assertSame($this->supervisor, $result);
-        $this->assertSame($count, $this->supervisor->getTotalClassroomCount());
+        $name = '张三';
+        $this->supervisor->setSupervisorName($name);
+        $this->assertSame($name, $this->supervisor->getSupervisorName());
     }
 
-    public function testSetAndGetNewClassroomCount(): void
+    public function testSupervisorCodeGetterAndSetter(): void
     {
-        $count = 25;
-        
-        $result = $this->supervisor->setNewClassroomCount($count);
-        
-        $this->assertSame($this->supervisor, $result);
-        $this->assertSame($count, $this->supervisor->getNewClassroomCount());
+        $code = 'SUP001';
+        $this->supervisor->setSupervisorCode($code);
+        $this->assertSame($code, $this->supervisor->getSupervisorCode());
     }
 
-    public function testSetAndGetDailyLoginCount(): void
+    public function testDepartmentGetterAndSetter(): void
     {
-        $count = 1200;
-        
-        $result = $this->supervisor->setDailyLoginCount($count);
-        
-        $this->assertSame($this->supervisor, $result);
-        $this->assertSame($count, $this->supervisor->getDailyLoginCount());
+        $department = '质量监督部';
+        $this->supervisor->setDepartment($department);
+        $this->assertSame($department, $this->supervisor->getDepartment());
     }
 
-    public function testSetAndGetDailyLearnCount(): void
+    public function testPositionGetterAndSetter(): void
     {
-        $count = 980;
-        
-        $result = $this->supervisor->setDailyLearnCount($count);
-        
-        $this->assertSame($this->supervisor, $result);
-        $this->assertSame($count, $this->supervisor->getDailyLearnCount());
+        $position = '高级监督员';
+        $this->supervisor->setPosition($position);
+        $this->assertSame($position, $this->supervisor->getPosition());
     }
 
-    public function testSetAndGetDailyCheatCount(): void
+    public function testContactPhoneGetterAndSetter(): void
     {
-        $count = 5;
-        
-        $result = $this->supervisor->setDailyCheatCount($count);
-        
-        $this->assertSame($this->supervisor, $result);
-        $this->assertSame($count, $this->supervisor->getDailyCheatCount());
+        $phone = '13800138000';
+        $this->supervisor->setContactPhone($phone);
+        $this->assertSame($phone, $this->supervisor->getContactPhone());
     }
 
-    public function testSetAndGetFaceDetectSuccessCount(): void
+    public function testContactEmailGetterAndSetter(): void
     {
-        $count = 950;
-        
-        $result = $this->supervisor->setFaceDetectSuccessCount($count);
-        
-        $this->assertSame($this->supervisor, $result);
-        $this->assertSame($count, $this->supervisor->getFaceDetectSuccessCount());
+        $email = 'supervisor@example.com';
+        $this->supervisor->setContactEmail($email);
+        $this->assertSame($email, $this->supervisor->getContactEmail());
     }
 
-    public function testSetAndGetFaceDetectFailCount(): void
+    public function testSupervisorLevelGetterAndSetter(): void
     {
-        $count = 30;
-        
-        $result = $this->supervisor->setFaceDetectFailCount($count);
-        
-        $this->assertSame($this->supervisor, $result);
-        $this->assertSame($count, $this->supervisor->getFaceDetectFailCount());
+        $level = '高级';
+        $this->supervisor->setSupervisorLevel($level);
+        $this->assertSame($level, $this->supervisor->getSupervisorLevel());
     }
 
-    public function testDefaultValues(): void
+    public function testSupervisorStatusGetterAndSetter(): void
     {
-        $this->assertSame(0, $this->supervisor->getTotalClassroomCount());
-        $this->assertSame(0, $this->supervisor->getNewClassroomCount());
-        $this->assertSame(0, $this->supervisor->getDailyLoginCount());
-        $this->assertSame(0, $this->supervisor->getDailyLearnCount());
-        $this->assertSame(0, $this->supervisor->getDailyCheatCount());
-        $this->assertSame(0, $this->supervisor->getFaceDetectSuccessCount());
-        $this->assertSame(0, $this->supervisor->getFaceDetectFailCount());
+        $status = '在职';
+        $this->supervisor->setSupervisorStatus($status);
+        $this->assertSame($status, $this->supervisor->getSupervisorStatus());
     }
 
-    public function testToStringWhenIdIsNull(): void
+    public function testSpecialtiesGetterAndSetter(): void
     {
-        $result = (string) $this->supervisor;
-        
-        $this->assertSame('', $result);
+        $specialties = '培训监督、质量管理、流程优化';
+        $this->supervisor->setSpecialties($specialties);
+        $this->assertSame($specialties, $this->supervisor->getSpecialties());
     }
 
-    public function testCountsCanBeZero(): void
+    public function testQualificationsGetterAndSetter(): void
     {
-        $this->supervisor
-            ->setTotalClassroomCount(0)
-            ->setNewClassroomCount(0)
-            ->setDailyLoginCount(0)
-            ->setDailyLearnCount(0)
-            ->setDailyCheatCount(0)
-            ->setFaceDetectSuccessCount(0)
-            ->setFaceDetectFailCount(0);
-
-        $this->assertSame(0, $this->supervisor->getTotalClassroomCount());
-        $this->assertSame(0, $this->supervisor->getNewClassroomCount());
-        $this->assertSame(0, $this->supervisor->getDailyLoginCount());
-        $this->assertSame(0, $this->supervisor->getDailyLearnCount());
-        $this->assertSame(0, $this->supervisor->getDailyCheatCount());
-        $this->assertSame(0, $this->supervisor->getFaceDetectSuccessCount());
-        $this->assertSame(0, $this->supervisor->getFaceDetectFailCount());
+        $qualifications = '国家级监督员证书、ISO9001内审员';
+        $this->supervisor->setQualifications($qualifications);
+        $this->assertSame($qualifications, $this->supervisor->getQualifications());
     }
 
-    public function testCountsCanBePositive(): void
+    public function testWorkExperienceGetterAndSetter(): void
     {
-        $this->supervisor
-            ->setTotalClassroomCount(100)
-            ->setNewClassroomCount(20)
-            ->setDailyLoginCount(500)
-            ->setDailyLearnCount(450)
-            ->setDailyCheatCount(3)
-            ->setFaceDetectSuccessCount(440)
-            ->setFaceDetectFailCount(10);
-
-        $this->assertSame(100, $this->supervisor->getTotalClassroomCount());
-        $this->assertSame(20, $this->supervisor->getNewClassroomCount());
-        $this->assertSame(500, $this->supervisor->getDailyLoginCount());
-        $this->assertSame(450, $this->supervisor->getDailyLearnCount());
-        $this->assertSame(3, $this->supervisor->getDailyCheatCount());
-        $this->assertSame(440, $this->supervisor->getFaceDetectSuccessCount());
-        $this->assertSame(10, $this->supervisor->getFaceDetectFailCount());
+        $experience = '10年培训行业监督管理经验';
+        $this->supervisor->setWorkExperience($experience);
+        $this->assertSame($experience, $this->supervisor->getWorkExperience());
     }
 
-    public function testDateTimeImmutableSetAndGet(): void
+    public function testRemarksGetterAndSetter(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->supervisor->setDate($now);
-        
-        $this->assertInstanceOf(\DateTimeInterface::class, $this->supervisor->getDate());
-        $this->assertSame($now, $this->supervisor->getDate());
+        $remarks = '优秀员工，表现突出';
+        $this->supervisor->setRemarks($remarks);
+        $this->assertSame($remarks, $this->supervisor->getRemarks());
     }
 
-    public function testFaceDetectSuccessCountReturnsNullableInt(): void
+    public function testToString(): void
     {
-        $this->assertSame(0, $this->supervisor->getFaceDetectSuccessCount());
-        
-        $this->supervisor->setFaceDetectSuccessCount(100);
-        $this->assertSame(100, $this->supervisor->getFaceDetectSuccessCount());
+        $name = '李四';
+        $this->supervisor->setSupervisorName($name);
+        $this->assertSame($name, (string) $this->supervisor);
     }
 
-    public function testAllSettersReturnSelfForChaining(): void
+    public function testToStringWithoutName(): void
     {
-        $date = new \DateTimeImmutable();
-        
-        $result = $this->supervisor
-            ->setDate($date)
-            ->setTotalClassroomCount(100)
-            ->setNewClassroomCount(20)
-            ->setDailyLoginCount(500)
-            ->setDailyLearnCount(450)
-            ->setDailyCheatCount(3)
-            ->setFaceDetectSuccessCount(440)
-            ->setFaceDetectFailCount(10);
+        $this->assertSame('', (string) $this->supervisor);
+    }
 
-        $this->assertSame($this->supervisor, $result);
+    public function testSettersAndGetters(): void
+    {
+        $this->supervisor->setSupervisorName('王五');
+        $this->supervisor->setSupervisorCode('SUP002');
+        $this->supervisor->setDepartment('培训部');
+        $this->supervisor->setPosition('监督专员');
+        $this->supervisor->setContactPhone('13900139000');
+        $this->supervisor->setContactEmail('wangwu@example.com');
+        $this->supervisor->setSupervisorLevel('中级');
+        $this->supervisor->setSupervisorStatus('在职');
+        $this->supervisor->setSpecialties('培训质量监督');
+        $this->supervisor->setQualifications('中级监督员证书');
+        $this->supervisor->setWorkExperience('5年经验');
+        $this->supervisor->setRemarks('工作认真负责');
+
+        $this->assertSame('王五', $this->supervisor->getSupervisorName());
+        $this->assertSame('SUP002', $this->supervisor->getSupervisorCode());
+        $this->assertSame('培训部', $this->supervisor->getDepartment());
+        $this->assertSame('监督专员', $this->supervisor->getPosition());
+    }
+
+    public function testNullableFields(): void
+    {
+        $this->supervisor->setDepartment(null);
+        $this->supervisor->setPosition(null);
+        $this->supervisor->setContactPhone(null);
+        $this->supervisor->setContactEmail(null);
+        $this->supervisor->setSpecialties(null);
+        $this->supervisor->setQualifications(null);
+        $this->supervisor->setWorkExperience(null);
+        $this->supervisor->setRemarks(null);
+
+        $this->assertNull($this->supervisor->getDepartment());
+        $this->assertNull($this->supervisor->getPosition());
+        $this->assertNull($this->supervisor->getContactPhone());
+        $this->assertNull($this->supervisor->getContactEmail());
+        $this->assertNull($this->supervisor->getSpecialties());
+        $this->assertNull($this->supervisor->getQualifications());
+        $this->assertNull($this->supervisor->getWorkExperience());
+        $this->assertNull($this->supervisor->getRemarks());
+    }
+
+    public function testRequiredFields(): void
+    {
+        $this->supervisor->setSupervisorName('赵六');
+        $this->supervisor->setSupervisorCode('SUP003');
+        $this->supervisor->setSupervisorLevel('初级');
+        $this->supervisor->setSupervisorStatus('试用');
+
+        $this->assertSame('赵六', $this->supervisor->getSupervisorName());
+        $this->assertSame('SUP003', $this->supervisor->getSupervisorCode());
+        $this->assertSame('初级', $this->supervisor->getSupervisorLevel());
+        $this->assertSame('试用', $this->supervisor->getSupervisorStatus());
+    }
+
+    public function testCompleteProfile(): void
+    {
+        $this->supervisor->setSupervisorName('完整档案测试');
+        $this->supervisor->setSupervisorCode('SUP999');
+        $this->supervisor->setDepartment('综合管理部');
+        $this->supervisor->setPosition('首席监督官');
+        $this->supervisor->setContactPhone('18888888888');
+        $this->supervisor->setContactEmail('chief@company.com');
+        $this->supervisor->setSupervisorLevel('特级');
+        $this->supervisor->setSupervisorStatus('在职');
+        $this->supervisor->setSpecialties('全面质量管理、流程优化、团队建设');
+        $this->supervisor->setQualifications('高级监督员证书、PMP认证、六西格玛黑带');
+        $this->supervisor->setWorkExperience('20年行业经验，曾任多家大型企业质量总监');
+        $this->supervisor->setRemarks('公司核心管理人员，负责全公司质量体系建设');
+
+        $this->assertSame('完整档案测试', $this->supervisor->getSupervisorName());
+        $this->assertSame('SUP999', $this->supervisor->getSupervisorCode());
+        $this->assertSame('综合管理部', $this->supervisor->getDepartment());
+        $this->assertSame('首席监督官', $this->supervisor->getPosition());
+        $this->assertSame('18888888888', $this->supervisor->getContactPhone());
+        $this->assertSame('chief@company.com', $this->supervisor->getContactEmail());
+        $this->assertSame('特级', $this->supervisor->getSupervisorLevel());
+        $this->assertSame('在职', $this->supervisor->getSupervisorStatus());
+        $specialties = $this->supervisor->getSpecialties();
+        $this->assertNotNull($specialties);
+        $this->assertStringContainsString('全面质量管理', $specialties);
+
+        $qualifications = $this->supervisor->getQualifications();
+        $this->assertNotNull($qualifications);
+        $this->assertStringContainsString('PMP认证', $qualifications);
+
+        $workExperience = $this->supervisor->getWorkExperience();
+        $this->assertNotNull($workExperience);
+        $this->assertStringContainsString('20年行业经验', $workExperience);
+
+        $remarks = $this->supervisor->getRemarks();
+        $this->assertNotNull($remarks);
+        $this->assertStringContainsString('核心管理人员', $remarks);
     }
 }

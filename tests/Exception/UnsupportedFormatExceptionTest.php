@@ -2,13 +2,20 @@
 
 namespace Tourze\TrainSupervisorBundle\Tests\Exception;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitBase\AbstractExceptionTestCase;
 use Tourze\TrainSupervisorBundle\Exception\UnsupportedFormatException;
 
-class UnsupportedFormatExceptionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(UnsupportedFormatException::class)]
+final class UnsupportedFormatExceptionTest extends AbstractExceptionTestCase
 {
-    public function testExceptionExists(): void
+    public function testExceptionCanBeInstantiated(): void
     {
-        $this->assertTrue(class_exists(UnsupportedFormatException::class));
+        $exception = new UnsupportedFormatException('Test message');
+        $this->assertInstanceOf(UnsupportedFormatException::class, $exception);
+        $this->assertEquals('Test message', $exception->getMessage());
     }
 }

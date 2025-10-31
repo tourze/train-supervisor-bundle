@@ -8,22 +8,24 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Tourze\TrainSupervisorBundle\Exception\UnsupportedFormatException;
 use Tourze\TrainSupervisorBundle\Service\ReportService;
 use Tourze\TrainSupervisorBundle\Service\SupervisorService;
 
 /**
  * 日常监督数据处理命令
- * 用于收集、处理和分析日常监督数据
+ * 用于收集、处理和分析日常监督数据.
  */
-#[AsCommand(
-    name: self::NAME,
-    description: '收集和处理日常监督数据'
-)]
+#[AsCommand(name: self::NAME, description: '收集和处理日常监督数据', help: <<<'TXT'
+    此命令用于收集和处理日常监督数据，可以生成报告和检查异常。
+    TXT)]
+#[Autoconfigure(public: true)]
 class DailySupervisionDataCommand extends Command
 {
     public const NAME = 'train:supervision:daily-data';
-public function __construct(
+
+    public function __construct(
         private readonly SupervisorService $supervisorService,
         private readonly ReportService $reportService,
     ) {
@@ -37,22 +39,26 @@ public function __construct(
             ->addOption('generate-report', null, InputOption::VALUE_NONE, '生成日报')
             ->addOption('check-anomaly', null, InputOption::VALUE_NONE, '检查异常数据')
             ->addOption('export', null, InputOption::VALUE_OPTIONAL, '导出数据到文件')
-            ->setHelp('此命令用于收集和处理日常监督数据，可以生成报告和检查异常。');
+            ->addOption('auto-publish', null, InputOption::VALUE_NONE, '自动发布报告，跳过确认')
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
-        $dateStr = $input->getOption('date');
-        $generateReport = $input->getOption('generate-report');
-        $checkAnomaly = $input->getOption('check-anomaly');
-        $exportFile = $input->getOption('export');
+
+        $dateStr = is_string($input->getOption('date')) ? $input->getOption('date') : date('Y-m-d');
+        $generateReport = (bool) $input->getOption('generate-report');
+        $checkAnomaly = (bool) $input->getOption('check-anomaly');
+        $exportFileOption = $input->getOption('export');
+        $exportFile = is_string($exportFileOption) ? $exportFileOption : null;
+        $autoPublish = (bool) $input->getOption('auto-publish');
 
         try {
             $date = new \DateTime($dateStr);
         } catch (\Throwable $e) {
             $io->error(sprintf('无效的日期格式: %s', $dateStr));
+
             return Command::FAILURE;
         }
 
@@ -64,25 +70,26 @@ public function __construct(
             $this->collectSupervisionStatistics($date, $io);
 
             // 检查异常数据
-            if ((bool) $checkAnomaly) {
+            if ($checkAnomaly) {
                 $this->checkAnomalyData($date, $io);
             }
 
             // 生成日报
-            if ((bool) $generateReport) {
-                $this->generateDailyReport($date, $io);
+            if ($generateReport) {
+                $this->generateDailyReport($date, $io, $autoPublish);
             }
 
             // 导出数据
-            if ((bool) $exportFile) {
+            if (null !== $exportFile) {
                 $this->exportData($date, $exportFile, $io);
             }
 
             $io->success('日常监督数据处理完成！');
-            return Command::SUCCESS;
 
+            return Command::SUCCESS;
         } catch (\Throwable $e) {
             $io->error(sprintf('处理过程中发生错误: %s', $e->getMessage()));
+
             return Command::FAILURE;
         }
     }
@@ -101,33 +108,36 @@ public function __construct(
         $statistics = $this->supervisorService->generateSupervisorStatistics($startDate, $endDate);
 
         $io->definitionList(
-            ['总记录数' => $statistics['total_records']],
-            ['涉及机构数' => $statistics['total_suppliers']],
+            ['总记录数' => $statistics['total_records'] ?? 0],
+            ['涉及机构数' => $statistics['total_suppliers'] ?? 0],
             ['总开班数' => $statistics['total_classrooms']],
             ['新开班数' => $statistics['total_new_classrooms']],
             ['总登录人数' => $statistics['total_logins']],
             ['总学习人数' => $statistics['total_learners']],
             ['总作弊次数' => $statistics['total_cheats']],
-            ['作弊率' => sprintf('%.2f%%', $statistics['cheat_rate'])],
-            ['人脸识别成功率' => sprintf('%.2f%%', $statistics['face_detect_success_rate'])]
+            ['作弊率' => sprintf('%.2f%%', $this->safeFloatCast($statistics['cheat_rate'] ?? 0))],
+            ['人脸识别成功率' => sprintf('%.2f%%', $this->safeFloatCast($statistics['face_detect_success_rate'] ?? 0))]
         );
 
         // 显示按机构统计
-        if (!empty($statistics['by_supplier'])) {
+        $bySupplier = $statistics['by_supplier'] ?? [];
+        if (is_array($bySupplier) && [] !== $bySupplier) {
             $io->section('按机构统计');
             $tableData = [];
-            foreach ($statistics['by_supplier'] as $supplierData) {
+            foreach ($bySupplier as $supplierData) {
+                if (!is_array($supplierData)) {
+                    continue;
+                }
                 $tableData[] = [
-                    $supplierData['supplier_name'],
-                    $supplierData['total_classrooms'],
-                    $supplierData['total_logins'],
-                    $supplierData['total_learners'],
-                    $supplierData['total_cheats'],
-                    sprintf('%.2f%%', $supplierData['total_learners'] > 0 ? 
-                        ($supplierData['total_cheats'] / $supplierData['total_learners']) * 100 : 0)
+                    $supplierData['supplier_name'] ?? 'Unknown',
+                    $supplierData['total_classrooms'] ?? 0,
+                    $supplierData['total_logins'] ?? 0,
+                    $supplierData['total_learners'] ?? 0,
+                    $supplierData['total_cheats'] ?? 0,
+                    $this->calculateCheatRate($supplierData['total_cheats'] ?? 0, $supplierData['total_learners'] ?? 0),
                 ];
             }
-            
+
             $io->table(
                 ['机构名称', '开班数', '登录人数', '学习人数', '作弊次数', '作弊率'],
                 $tableData
@@ -136,7 +146,7 @@ public function __construct(
     }
 
     /**
-     * 检查异常数据
+     * 检查异常数据.
      */
     private function checkAnomalyData(\DateTime $date, SymfonyStyle $io): void
     {
@@ -147,8 +157,9 @@ public function __construct(
 
         $anomalies = $this->supervisorService->getAnomalySupervisorData($startDate, $endDate);
 
-        if ((bool) empty($anomalies)) {
+        if ([] === $anomalies) {
             $io->success('未发现异常数据');
+
             return;
         }
 
@@ -159,7 +170,7 @@ public function __construct(
             $tableData[] = [
                 $anomaly['supplier_name'],
                 $anomaly['date'],
-                implode('; ', $anomaly['anomaly_reasons'])
+                implode('; ', $anomaly['anomaly_reasons']),
             ];
         }
 
@@ -174,14 +185,14 @@ public function __construct(
             '1. 联系相关机构核实数据准确性',
             '2. 检查系统是否存在技术问题',
             '3. 必要时进行现场检查',
-            '4. 记录异常处理过程'
+            '4. 记录异常处理过程',
         ]);
     }
 
     /**
-     * 生成日报
+     * 生成日报.
      */
-    private function generateDailyReport(\DateTime $date, SymfonyStyle $io): void
+    private function generateDailyReport(\DateTime $date, SymfonyStyle $io, bool $autoPublish = false): void
     {
         $io->section('生成日报');
 
@@ -197,23 +208,25 @@ public function __construct(
         $problemSummary = $report->getProblemSummary();
         $statisticsData = $report->getStatisticsData();
 
+        $inspectionStats = is_array($statisticsData['inspection_stats'] ?? null) ? $statisticsData['inspection_stats'] : [];
+
         $io->definitionList(
             ['检查次数' => $supervisionData['inspection_count'] ?? 0],
             ['评估次数' => $supervisionData['assessment_count'] ?? 0],
             ['发现问题' => $problemSummary['total_problems'] ?? 0],
-            ['平均分数' => sprintf('%.2f', $statisticsData['inspection_stats']['average_score'] ?? 0)],
-            ['通过率' => sprintf('%.2f%%', $statisticsData['inspection_stats']['pass_rate'] ?? 0)]
+            ['平均分数' => sprintf('%.2f', $this->safeFloatCast($inspectionStats['average_score'] ?? 0))],
+            ['通过率' => sprintf('%.2f%%', $this->safeFloatCast($inspectionStats['pass_rate'] ?? 0))]
         );
 
         // 询问是否发布报告
-        if ($io->confirm('是否立即发布此报告？', false)) {
+        if ($autoPublish || $io->confirm('是否立即发布此报告？', false)) {
             $this->reportService->publishReport($report);
             $io->success('报告已发布！');
         }
     }
 
     /**
-     * 导出数据
+     * 导出数据.
      */
     private function exportData(\DateTime $date, string $exportFile, SymfonyStyle $io): void
     {
@@ -225,14 +238,15 @@ public function __construct(
         // 导出监督数据
         $data = $this->supervisorService->exportSupervisorData($startDate, $endDate);
 
-        if ((bool) empty($data)) {
+        if ([] === $data) {
             $io->warning('没有数据可导出');
+
             return;
         }
 
         // 确定文件格式
         $extension = pathinfo($exportFile, PATHINFO_EXTENSION);
-        
+
         try {
             switch (strtolower($extension)) {
                 case 'json':
@@ -247,14 +261,15 @@ public function __construct(
 
             $io->success(sprintf('数据已导出到: %s', $exportFile));
             $io->text(sprintf('导出记录数: %d', count($data)));
-
         } catch (\Throwable $e) {
             $io->error(sprintf('导出失败: %s', $e->getMessage()));
         }
     }
 
     /**
-     * 导出为JSON格式
+     * 导出为JSON格式.
+     *
+     * @param array<int, array<string, mixed>> $data
      */
     private function exportToJson(array $data, string $filename): void
     {
@@ -263,25 +278,111 @@ public function __construct(
     }
 
     /**
-     * 导出为CSV格式
+     * 导出为CSV格式.
+     *
+     * @param array<int, array<string, mixed>> $data
      */
     private function exportToCsv(array $data, string $filename): void
     {
         $handle = fopen($filename, 'w');
-        
-        // 写入BOM以支持中文
-        fwrite($handle, "\xEF\xBB\xBF");
-        
-        // 写入表头
-        if (!empty($data)) {
-            fputcsv($handle, array_keys($data[0]));
-            
-            // 写入数据
-            foreach ($data as $row) {
-                fputcsv($handle, $row);
-            }
+        if (false === $handle) {
+            throw new UnsupportedFormatException(sprintf('无法创建文件: %s', $filename));
         }
-        
+
+        $this->writeCsvContent($handle, $data);
         fclose($handle);
     }
-} 
+
+    /**
+     * 写入CSV内容.
+     *
+     * @param resource $handle
+     * @param array<int, array<string, mixed>> $data
+     */
+    private function writeCsvContent($handle, array $data): void
+    {
+        // 写入BOM以支持中文
+        fwrite($handle, "\xEF\xBB\xBF");
+
+        if ([] === $data || !isset($data[0])) {
+            return;
+        }
+
+        $this->writeCsvHeader($handle, $data[0]);
+        $this->writeCsvRows($handle, $data);
+    }
+
+    /**
+     * 写入CSV表头.
+     *
+     * @param resource $handle
+     * @param array<string, mixed> $firstRow
+     */
+    private function writeCsvHeader($handle, array $firstRow): void
+    {
+        fputcsv($handle, array_keys($firstRow));
+    }
+
+    /**
+     * 写入CSV数据行.
+     *
+     * @param resource $handle
+     * @param array<int, array<string, mixed>> $data
+     */
+    private function writeCsvRows($handle, array $data): void
+    {
+        foreach ($data as $row) {
+            $csvRow = $this->prepareCsvRow($row);
+            fputcsv($handle, $csvRow);
+        }
+    }
+
+    /**
+     * 准备CSV行数据.
+     *
+     * @param array<string, mixed> $row
+     * @return array<int, string|null>
+     */
+    private function prepareCsvRow(array $row): array
+    {
+        $csvRow = [];
+        foreach ($row as $value) {
+            if (is_scalar($value) || null === $value) {
+                $csvRow[] = is_scalar($value) ? (string) $value : null;
+            } else {
+                $csvRow[] = '';
+            }
+        }
+
+        return $csvRow;
+    }
+
+    /**
+     * 安全地将mixed类型转换为float
+     */
+    private function safeFloatCast(mixed $value): float
+    {
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * 计算作弊率
+     */
+    private function calculateCheatRate(mixed $cheats, mixed $learners): string
+    {
+        $cheatCount = $this->safeFloatCast($cheats);
+        $learnerCount = $this->safeFloatCast($learners);
+
+        if ($learnerCount > 0) {
+            $rate = ($cheatCount / $learnerCount) * 100;
+
+            return sprintf('%.2f%%', $rate);
+        }
+
+        return '0.00%';
+    }
+}

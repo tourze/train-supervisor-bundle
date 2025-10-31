@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tourze\TrainSupervisorBundle\Controller\Admin;
 
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -16,9 +17,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use Tourze\TrainSupervisorBundle\Entity\Supervisor;
 
 /**
- * 监督员CRUD控制器
+ * 监督员CRUD控制器.
+ *
+ * @extends AbstractCrudController<Supervisor>
  */
-class SupervisorCrudController extends AbstractCrudController
+#[AdminCrud(routePath: '/train-supervisor/supervisor', routeName: 'train_supervisor_supervisor')]
+final class SupervisorCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
     {
@@ -35,7 +39,8 @@ class SupervisorCrudController extends AbstractCrudController
             ->setPageTitle('edit', '编辑监督员')
             ->setPageTitle('detail', '监督员详情')
             ->setDefaultSort(['createTime' => 'DESC'])
-            ->setPaginatorPageSize(20);
+            ->setPaginatorPageSize(20)
+        ;
     }
 
     public function configureFields(string $pageName): iterable
@@ -53,7 +58,7 @@ class SupervisorCrudController extends AbstractCrudController
                     '初级' => '初级',
                     '中级' => '中级',
                     '高级' => '高级',
-                    '专家' => '专家'
+                    '专家' => '专家',
                 ])
                 ->setRequired(true),
             ChoiceField::new('supervisorStatus', '状态')
@@ -61,7 +66,7 @@ class SupervisorCrudController extends AbstractCrudController
                     '在职' => '在职',
                     '离职' => '离职',
                     '停职' => '停职',
-                    '退休' => '退休'
+                    '退休' => '退休',
                 ])
                 ->setRequired(true),
             TextareaField::new('specialties', '专业领域')->hideOnIndex(),
@@ -81,14 +86,15 @@ class SupervisorCrudController extends AbstractCrudController
                     '初级' => '初级',
                     '中级' => '中级',
                     '高级' => '高级',
-                    '专家' => '专家'
+                    '专家' => '专家',
                 ]))
             ->add(ChoiceFilter::new('supervisorStatus', '状态')
                 ->setChoices([
                     '在职' => '在职',
                     '离职' => '离职',
                     '停职' => '停职',
-                    '退休' => '退休'
-                ]));
+                    '退休' => '退休',
+                ]))
+        ;
     }
-} 
+}

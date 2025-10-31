@@ -1,22 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\TrainSupervisorBundle\Service;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
-use Tourze\TrainSupervisorBundle\Exception\UnsupportedFormatException;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Tourze\TrainSupervisorBundle\Repository\SupervisorDataRepository;
 
 /**
  * 学习统计服务
- * 提供各种学习数据统计查询功能
+ * 提供各种学习数据统计查询功能.
  */
+#[Autoconfigure(public: true)]
 class LearningStatisticsService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-    ) {}
+        private readonly LearningStatisticsCalculator $calculator,
+        private readonly LearningStatisticsQueryBuilder $queryBuilder,
+        private readonly LearningStatisticsExporter $exporter,
+    ) {
+    }
 
     /**
-     * 获取学习统计数据
+     * 获取学习统计数据.
+     *
+     * @param array<string, mixed> $filters
+     *
+     * @return array<string, mixed>
      */
     public function getLearningStatistics(array $filters): array
     {
@@ -33,63 +45,76 @@ class LearningStatisticsService
                 'total_completed' => $completion['total_completed'] ?? 0,
                 'completion_rate' => $completion['completion_rate'] ?? 0,
                 'current_online' => $online['current_online'] ?? 0,
-            ]
+            ],
         ];
     }
 
     /**
      * 获取报名学习人数统计
+     *
+     * @param array<string, mixed> $filters
+     *
+     * @return array<string, mixed>
      */
     public function getEnrollmentStatistics(array $filters): array
     {
-        $query = $this->buildBaseQuery($filters);
+        $query = $this->queryBuilder->buildBaseQuery($filters);
 
         // 统计总报名人数
         $totalEnrolled = $query
             ->select('SUM(s.dailyLoginCount) as total_enrolled')
             ->getQuery()
-            ->getSingleScalarResult() ?? 0;
+            ->getSingleScalarResult() ?? 0
+        ;
 
         // 按时间段统计
-        $byPeriod = $this->getEnrollmentByPeriod($filters);
+        $byPeriod = $this->queryBuilder->getEnrollmentByPeriod($filters);
 
         // 按机构统计
-        $byInstitution = $this->getEnrollmentByInstitution($filters);
+        $byInstitution = $this->queryBuilder->getEnrollmentByInstitution($filters);
 
         return [
-            'total_enrolled' => (int)$totalEnrolled,
+            'total_enrolled' => (int) $totalEnrolled,
             'by_period' => $byPeriod,
             'by_institution' => $byInstitution,
-            'growth_rate' => $this->calculateGrowthRate($byPeriod),
+            'growth_rate' => $this->calculator->calculateGrowthRate($byPeriod),
         ];
     }
 
     /**
      * 获取已完成学习人数统计
+     *
+     * @param array<string, mixed> $filters
+     *
+     * @return array<string, mixed>
      */
     public function getCompletedLearningStatistics(array $filters): array
     {
-        $query = $this->buildBaseQuery($filters);
+        $query = $this->queryBuilder->buildBaseQuery($filters);
 
         // 统计总完成人数
         $totalCompleted = $query
             ->select('SUM(s.dailyLearnCount) as total_completed')
             ->getQuery()
-            ->getSingleScalarResult() ?? 0;
+            ->getSingleScalarResult() ?? 0
+        ;
 
         $enrollmentStats = $this->getEnrollmentStatistics($filters);
         $totalEnrolled = $enrollmentStats['total_enrolled'];
+        assert(is_int($totalEnrolled));
 
-        $completionRate = $totalEnrolled > 0 ? ($totalCompleted / $totalEnrolled) * 100 : 0;
+        $totalCompletedFloat = is_numeric($totalCompleted) ? (float) $totalCompleted : 0;
+        $totalEnrolledFloat = (float) $totalEnrolled;
+        $completionRate = $totalEnrolledFloat > 0 ? ($totalCompletedFloat / $totalEnrolledFloat) * 100 : 0;
 
         // 按时间段统计
-        $byPeriod = $this->getCompletionByPeriod($filters);
+        $byPeriod = $this->queryBuilder->getCompletionByPeriod($filters);
 
         // 按机构统计
-        $byInstitution = $this->getCompletionByInstitution($filters);
+        $byInstitution = $this->queryBuilder->getCompletionByInstitution($filters);
 
         return [
-            'total_completed' => (int)$totalCompleted,
+            'total_completed' => (int) $totalCompleted,
             'total_enrolled' => $totalEnrolled,
             'completion_rate' => round($completionRate, 2),
             'by_period' => $byPeriod,
@@ -99,6 +124,10 @@ class LearningStatisticsService
 
     /**
      * 获取在线学习人数统计
+     *
+     * @param array<string, mixed> $filters
+     *
+     * @return array<string, mixed>
      */
     public function getOnlineLearningStatistics(array $filters): array
     {
@@ -106,86 +135,112 @@ class LearningStatisticsService
         $currentDate = new \DateTime();
         $todayFilters = array_merge($filters, [
             'start_date' => $currentDate->format('Y-m-d'),
-            'end_date' => $currentDate->format('Y-m-d')
+            'end_date' => $currentDate->format('Y-m-d'),
         ]);
 
-        $query = $this->buildBaseQuery($todayFilters);
+        $query = $this->queryBuilder->buildBaseQuery($todayFilters);
         $currentOnline = $query
             ->select('SUM(s.dailyLearnCount) as current_online')
             ->getQuery()
-            ->getSingleScalarResult() ?? 0;
+            ->getSingleScalarResult() ?? 0
+        ;
 
         // 获取峰值在线人数
-        $peakQuery = $this->buildBaseQuery($filters);
+        $peakQuery = $this->queryBuilder->buildBaseQuery($filters);
         $peakOnline = $peakQuery
             ->select('MAX(s.dailyLearnCount) as peak_online')
             ->getQuery()
-            ->getSingleScalarResult() ?? 0;
+            ->getSingleScalarResult() ?? 0
+        ;
 
         // 按时间段统计在线学习情况
-        $byPeriod = $this->getOnlineByPeriod($filters);
+        $byPeriod = $this->queryBuilder->getOnlineByPeriod($filters);
 
         return [
-            'current_online' => (int)$currentOnline,
-            'peak_online' => (int)$peakOnline,
+            'current_online' => (int) $currentOnline,
+            'peak_online' => (int) $peakOnline,
             'by_period' => $byPeriod,
-            'average_online' => $this->calculateAverageOnline($byPeriod),
+            'average_online' => $this->calculator->calculateAverageOnline($byPeriod),
         ];
     }
 
     /**
      * 按机构统计
+     *
+     * @param array<string, mixed> $filters
+     * @return array<int, array<string, mixed>>
      */
     public function getStatisticsByInstitution(array $filters): array
     {
-        $query = $this->buildBaseQuery($filters);
+        $query = $this->queryBuilder->buildBaseQuery($filters);
 
         $results = $query
             ->select([
-                'supplier.name as institution_name',
-                'supplier.id as institution_id',
+                's.supplierId as institution_id',
                 'SUM(s.dailyLoginCount) as enrolled_count',
                 'SUM(s.dailyLearnCount) as completed_count',
                 'SUM(s.totalClassroomCount) as classroom_count',
                 'SUM(s.newClassroomCount) as new_classroom_count',
-                'SUM(s.dailyCheatCount) as cheat_count'
+                'SUM(s.dailyCheatCount) as cheat_count',
             ])
-            ->groupBy('supplier.id', 'supplier.name')
+            ->groupBy('s.supplierId')
             ->orderBy('enrolled_count', 'DESC')
             ->getQuery()
-            ->getArrayResult();
+            ->getArrayResult()
+        ;
 
-        return array_map(function ($item) {
-            $completionRate = $item['enrolled_count'] > 0
-                ? ($item['completed_count'] / $item['enrolled_count']) * 100
+        $mappedResults = [];
+        foreach ($results as $item) {
+            assert(is_array($item));
+            $enrolledCountRaw = $item['enrolled_count'] ?? 0;
+            $completedCountRaw = $item['completed_count'] ?? 0;
+            $cheatCountRaw = $item['cheat_count'] ?? 0;
+
+            $enrolledCount = is_numeric($enrolledCountRaw) ? (float) $enrolledCountRaw : 0.0;
+            $completedCount = is_numeric($completedCountRaw) ? (float) $completedCountRaw : 0.0;
+            $cheatCount = is_numeric($cheatCountRaw) ? (float) $cheatCountRaw : 0.0;
+
+            $completionRate = $enrolledCount > 0
+                ? ($completedCount / $enrolledCount) * 100
                 : 0;
-            $cheatRate = $item['completed_count'] > 0
-                ? ($item['cheat_count'] / $item['completed_count']) * 100
+            $cheatRate = $completedCount > 0
+                ? ($cheatCount / $completedCount) * 100
                 : 0;
 
-            return [
-                'institution_id' => $item['institution_id'],
-                'institution_name' => $item['institution_name'],
-                'enrolled_count' => (int)$item['enrolled_count'],
-                'completed_count' => (int)$item['completed_count'],
+            $institutionIdRaw = $item['institution_id'] ?? 0;
+            $classroomCountRaw = $item['classroom_count'] ?? 0;
+            $newClassroomCountRaw = $item['new_classroom_count'] ?? 0;
+
+            $institutionId = is_numeric($institutionIdRaw) ? (int) $institutionIdRaw : 0;
+            $classroomCount = is_numeric($classroomCountRaw) ? (int) $classroomCountRaw : 0;
+            $newClassroomCount = is_numeric($newClassroomCountRaw) ? (int) $newClassroomCountRaw : 0;
+
+            $mappedResults[] = [
+                'institution_id' => $institutionId,
+                'institution_name' => (string) $institutionId,
+                'enrolled_count' => (int) $enrolledCount,
+                'completed_count' => (int) $completedCount,
                 'completion_rate' => round($completionRate, 2),
-                'classroom_count' => (int)$item['classroom_count'],
-                'new_classroom_count' => (int)$item['new_classroom_count'],
-                'cheat_count' => (int)$item['cheat_count'],
+                'classroom_count' => $classroomCount,
+                'new_classroom_count' => $newClassroomCount,
+                'cheat_count' => (int) $cheatCount,
                 'cheat_rate' => round($cheatRate, 2),
             ];
-        }, $results);
+        }
+
+        return $mappedResults;
     }
 
     /**
      * 按区域统计
+     *
+     * @param array<string, mixed> $filters
+     * @return array<int, array<string, mixed>>
      */
     public function getStatisticsByRegion(array $filters): array
     {
         // 这里需要根据实际的区域字段来实现
         // 假设机构表有region字段
-        $query = $this->buildBaseQuery($filters);
-
         // 由于当前Supplier实体可能没有region字段，这里先返回模拟数据
         // 实际实现需要根据机构的区域信息来统计
 
@@ -210,12 +265,15 @@ class LearningStatisticsService
                 'completed_count' => 1000,
                 'completion_rate' => 83.3,
                 'institution_count' => 20,
-            ]
+            ],
         ];
     }
 
     /**
      * 按年龄段统计
+     *
+     * @param array<string, mixed> $filters
+     * @return array<string, array<string, mixed>>
      */
     public function getStatisticsByAgeGroup(array $filters): array
     {
@@ -247,72 +305,61 @@ class LearningStatisticsService
                 'enrolled_count' => 400,
                 'completed_count' => 320,
                 'completion_rate' => 80.0,
-            ]
+            ],
         ];
     }
 
     /**
      * 获取学习趋势
+     *
+     * @param array<string, mixed> $filters
+     * @return array<int, array<string, mixed>>
      */
     public function getLearningTrends(array $filters, string $periodType = 'daily'): array
     {
-        $query = $this->buildBaseQuery($filters);
+        $isSqlite = $this->calculator->isSqlite();
+        $sql = $this->buildTrendSql($isSqlite);
 
-        $groupByFormat = match ($periodType) {
-            'daily' => 'DATE_FORMAT(s.date, \'%Y-%m-%d\')',
-            'weekly' => 'YEARWEEK(s.date)',
-            'monthly' => 'DATE_FORMAT(s.date, \'%Y-%m\')',
-            default => 'DATE_FORMAT(s.date, \'%Y-%m-%d\')',
-        };
+        $params = [];
+        $types = [];
+        if (!$isSqlite) {
+            $params['format'] = '%Y-%m-%d';
+            $types['format'] = Types::STRING;
+        }
 
-        $results = $query
-            ->select([
-                $groupByFormat . ' as period',
-                'SUM(s.dailyLoginCount) as enrolled_count',
-                'SUM(s.dailyLearnCount) as completed_count',
-                'AVG(s.dailyLearnCount) as avg_learn_count'
-            ])
-            ->groupBy('period')
-            ->orderBy('period', 'ASC')
-            ->getQuery()
-            ->getArrayResult();
+        return $this->calculator->calculateTrends($sql, array_merge($filters, $params, ['types' => $types]));
+    }
 
-        return array_map(function ($item) {
-            $completionRate = $item['enrolled_count'] > 0
-                ? ($item['completed_count'] / $item['enrolled_count']) * 100
-                : 0;
+    private function buildTrendSql(bool $isSqlite): string
+    {
+        $dateFormat = $isSqlite ? 'strftime("%Y-%m-%d", s.date)' : 'DATE_FORMAT(s.date, :format)';
 
-            return [
-                'period' => $item['period'],
-                'enrolled_count' => (int)$item['enrolled_count'],
-                'completed_count' => (int)$item['completed_count'],
-                'completion_rate' => round($completionRate, 2),
-                'avg_learn_count' => round($item['avg_learn_count'], 2),
-            ];
-        }, $results);
+        return "SELECT {$dateFormat} as period,
+                SUM(s.daily_login_count) as enrolled_count,
+                SUM(s.daily_learn_count) as completed_count,
+                AVG(s.daily_learn_count) as avg_learn_count
+            FROM train_supervisor_data s
+            WHERE 1=1";
     }
 
     /**
-     * 导出学习统计数据
+     * 导出学习统计数据.
+     *
+     * @param array<string, mixed> $filters
+     * @return array<string, mixed>
      */
     public function exportLearningStatistics(array $filters, string $format): array
     {
         $statistics = $this->getLearningStatistics($filters);
 
-        switch ($format) {
-            case 'csv':
-                return $this->exportToCsv($statistics);
-            case 'excel':
-                return $this->exportToExcel($statistics);
-            case 'pdf':
-                return $this->exportToPdf($statistics);
-            default:
-                throw new UnsupportedFormatException('不支持的导出格式');
-        }
+        return $this->exporter->export($statistics, $format);
     }
 
     /**
-     * 获取学习概览
+     * 获取学习概览.
+     *
+     * @param array<string, mixed> $filters
+     * @return array<string, mixed>
      */
     public function getLearningOverview(array $filters): array
     {
@@ -337,14 +384,17 @@ class LearningStatisticsService
             ],
             'institutions' => [
                 'total_count' => count($institutions),
-                'active_count' => count(array_filter($institutions, fn($inst) => $inst['enrolled_count'] > 0)),
+                'active_count' => count(array_filter($institutions, fn ($inst) => $inst['enrolled_count'] > 0)),
                 'top_performers' => array_slice($institutions, 0, 5),
-            ]
+            ],
         ];
     }
 
     /**
-     * 获取实时统计数据
+     * 获取实时统计数据.
+     *
+     * @param array<string, mixed> $filters
+     * @return array<string, mixed>
      */
     public function getRealtimeStatistics(array $filters): array
     {
@@ -352,7 +402,7 @@ class LearningStatisticsService
         $today = new \DateTime();
         $todayFilters = array_merge($filters, [
             'start_date' => $today->format('Y-m-d'),
-            'end_date' => $today->format('Y-m-d')
+            'end_date' => $today->format('Y-m-d'),
         ]);
 
         $todayStats = $this->getLearningStatistics($todayFilters);
@@ -361,244 +411,41 @@ class LearningStatisticsService
         $yesterday = (clone $today)->modify('-1 day');
         $yesterdayFilters = array_merge($filters, [
             'start_date' => $yesterday->format('Y-m-d'),
-            'end_date' => $yesterday->format('Y-m-d')
+            'end_date' => $yesterday->format('Y-m-d'),
         ]);
 
         $yesterdayStats = $this->getLearningStatistics($yesterdayFilters);
+
+        $todayEnrolled = 0;
+        $yesterdayEnrolled = 0;
+        $todayCompleted = 0;
+        $yesterdayCompleted = 0;
+
+        $todaySummary = $todayStats['summary'] ?? [];
+        $yesterdaySummary = $yesterdayStats['summary'] ?? [];
+
+        if (is_array($todaySummary)) {
+            $todayEnrolledRaw = $todaySummary['total_enrolled'] ?? 0;
+            $todayEnrolled = is_int($todayEnrolledRaw) ? $todayEnrolledRaw : 0;
+            $todayCompletedRaw = $todaySummary['total_completed'] ?? 0;
+            $todayCompleted = is_int($todayCompletedRaw) ? $todayCompletedRaw : 0;
+        }
+
+        if (is_array($yesterdaySummary)) {
+            $yesterdayEnrolledRaw = $yesterdaySummary['total_enrolled'] ?? 0;
+            $yesterdayEnrolled = is_int($yesterdayEnrolledRaw) ? $yesterdayEnrolledRaw : 0;
+            $yesterdayCompletedRaw = $yesterdaySummary['total_completed'] ?? 0;
+            $yesterdayCompleted = is_int($yesterdayCompletedRaw) ? $yesterdayCompletedRaw : 0;
+        }
 
         return [
             'today' => $todayStats,
             'yesterday' => $yesterdayStats,
             'comparison' => [
-                'enrollment_change' => $this->calculateChange(
-                    $todayStats['summary']['total_enrolled'],
-                    $yesterdayStats['summary']['total_enrolled']
-                ),
-                'completion_change' => $this->calculateChange(
-                    $todayStats['summary']['total_completed'],
-                    $yesterdayStats['summary']['total_completed']
-                ),
+                'enrollment_change' => $this->calculator->calculateChange($todayEnrolled, $yesterdayEnrolled),
+                'completion_change' => $this->calculator->calculateChange($todayCompleted, $yesterdayCompleted),
             ],
             'timestamp' => time(),
-        ];
-    }
-
-    /**
-     * 构建基础查询
-     */
-    private function buildBaseQuery(array $filters)
-    {
-        $qb = $this->entityManager->createQueryBuilder();
-        $qb->from('Tourze\TrainSupervisorBundle\Entity\Supervisor', 's')
-            ->leftJoin('s.supplier', 'supplier');
-
-        // 应用时间过滤
-        if (!empty($filters['start_date'])) {
-            $qb->andWhere('s.date >= :start_date')
-                ->setParameter('start_date', $filters['start_date']);
-        }
-
-        if (!empty($filters['end_date'])) {
-            $qb->andWhere('s.date <= :end_date')
-                ->setParameter('end_date', $filters['end_date']);
-        }
-
-        // 应用机构过滤
-        if (!empty($filters['institution_id'])) {
-            $qb->andWhere('supplier.id = :institution_id')
-                ->setParameter('institution_id', $filters['institution_id']);
-        }
-
-        if (!empty($filters['institution_ids'])) {
-            $qb->andWhere('supplier.id IN (:institution_ids)')
-                ->setParameter('institution_ids', $filters['institution_ids']);
-        }
-
-        return $qb;
-    }
-
-    /**
-     * 按时间段获取报名统计
-     */
-    private function getEnrollmentByPeriod(array $filters): array
-    {
-        $query = $this->buildBaseQuery($filters);
-
-        return $query
-            ->select([
-                'DATE_FORMAT(s.date, \'%Y-%m-%d\') as date',
-                'SUM(s.dailyLoginCount) as count'
-            ])
-            ->groupBy('date')
-            ->orderBy('date', 'ASC')
-            ->getQuery()
-            ->getArrayResult();
-    }
-
-    /**
-     * 按机构获取报名统计
-     */
-    private function getEnrollmentByInstitution(array $filters): array
-    {
-        $query = $this->buildBaseQuery($filters);
-
-        return $query
-            ->select([
-                'supplier.name as institution_name',
-                'SUM(s.dailyLoginCount) as count'
-            ])
-            ->groupBy('supplier.id')
-            ->orderBy('count', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getArrayResult();
-    }
-
-    /**
-     * 按时间段获取完成统计
-     */
-    private function getCompletionByPeriod(array $filters): array
-    {
-        $query = $this->buildBaseQuery($filters);
-
-        return $query
-            ->select([
-                'DATE_FORMAT(s.date, \'%Y-%m-%d\') as date',
-                'SUM(s.dailyLearnCount) as count'
-            ])
-            ->groupBy('date')
-            ->orderBy('date', 'ASC')
-            ->getQuery()
-            ->getArrayResult();
-    }
-
-    /**
-     * 按机构获取完成统计
-     */
-    private function getCompletionByInstitution(array $filters): array
-    {
-        $query = $this->buildBaseQuery($filters);
-
-        return $query
-            ->select([
-                'supplier.name as institution_name',
-                'SUM(s.dailyLearnCount) as count'
-            ])
-            ->groupBy('supplier.id')
-            ->orderBy('count', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getArrayResult();
-    }
-
-    /**
-     * 按时间段获取在线统计
-     */
-    private function getOnlineByPeriod(array $filters): array
-    {
-        $query = $this->buildBaseQuery($filters);
-
-        return $query
-            ->select([
-                'DATE_FORMAT(s.date, \'%Y-%m-%d\') as date',
-                'SUM(s.dailyLearnCount) as count'
-            ])
-            ->groupBy('date')
-            ->orderBy('date', 'ASC')
-            ->getQuery()
-            ->getArrayResult();
-    }
-
-    /**
-     * 计算增长率
-     */
-    private function calculateGrowthRate(array $periodData): float
-    {
-        if ((bool) count($periodData) < 2) {
-            return 0;
-        }
-
-        $latest = end($periodData)['count'] ?? 0;
-        $previous = prev($periodData)['count'] ?? 0;
-
-        return $previous > 0 ? (($latest - $previous) / $previous) * 100 : 0;
-    }
-
-    /**
-     * 计算平均在线人数
-     */
-    private function calculateAverageOnline(array $periodData): float
-    {
-        if ((bool) empty($periodData)) {
-            return 0;
-        }
-
-        $total = array_sum(array_column($periodData, 'count'));
-        return $total / count($periodData);
-    }
-
-    /**
-     * 计算变化率
-     */
-    private function calculateChange(int $current, int $previous): array
-    {
-        $change = $current - $previous;
-        $percentage = $previous > 0 ? ($change / $previous) * 100 : 0;
-
-        return [
-            'absolute' => $change,
-            'percentage' => round($percentage, 2),
-            'direction' => $change > 0 ? 'up' : ($change < 0 ? 'down' : 'stable'),
-        ];
-    }
-
-    /**
-     * 导出为CSV格式
-     */
-    private function exportToCsv(array $data): array
-    {
-        $output = "机构名称,报名人数,完成人数,完成率,在线人数\n";
-
-        foreach ($data['enrollment']['by_institution'] as $item) {
-            $output .= sprintf(
-                "%s,%d,%d,%.2f%%,%d\n",
-                $item['institution_name'],
-                $item['count'],
-                0, // 这里需要关联完成数据
-                0,
-                0
-            );
-        }
-
-        return [
-            'content' => $output,
-            'mime_type' => 'text/csv; charset=utf-8'
-        ];
-    }
-
-    /**
-     * 导出为Excel格式
-     */
-    private function exportToExcel(array $data): array
-    {
-        // 这里应该使用PhpSpreadsheet等库来生成Excel文件
-        // 目前返回CSV格式作为示例
-        return $this->exportToCsv($data);
-    }
-
-    /**
-     * 导出为PDF格式
-     */
-    private function exportToPdf(array $data): array
-    {
-        // 这里应该使用TCPDF或DomPDF等库来生成PDF文件
-        // 目前返回简单的HTML格式作为示例
-        $html = '<h1>学习统计报告</h1>';
-        $html .= '<p>生成时间：' . date('Y-m-d H:i:s') . '</p>';
-
-        return [
-            'content' => $html,
-            'mime_type' => 'text/html; charset=utf-8'
         ];
     }
 }

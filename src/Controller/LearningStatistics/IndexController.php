@@ -11,13 +11,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Tourze\TrainSupervisorBundle\Service\LearningStatisticsService;
 
 /**
- * 学习统计主页控制器
+ * 学习统计主页控制器.
  */
-class IndexController extends AbstractController
+final class IndexController extends AbstractController
 {
     public function __construct(
         private readonly LearningStatisticsService $statisticsService,
-    ) {}
+    ) {
+    }
 
     #[Route(path: '/admin/learning-statistics', name: 'admin_learning_statistics_index', methods: ['GET'])]
     public function __invoke(Request $request): Response
@@ -53,13 +54,28 @@ class IndexController extends AbstractController
     }
 
     /**
-     * 从请求中提取过滤条件
+     * 从请求中提取过滤条件.
+     *
+     * @return array<string, mixed>
      */
     private function extractFilters(Request $request): array
     {
         $filters = [];
 
-        // 时间条件
+        $filters = array_merge($filters, $this->extractTimeFilters($request));
+        $filters = array_merge($filters, $this->extractInstitutionFilters($request));
+        $filters = array_merge($filters, $this->extractLocationFilters($request));
+
+        return array_merge($filters, $this->extractDemographicFilters($request));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extractTimeFilters(Request $request): array
+    {
+        $filters = [];
+
         if ($request->query->has('start_date')) {
             $filters['start_date'] = $request->query->get('start_date');
         }
@@ -68,22 +84,43 @@ class IndexController extends AbstractController
         }
 
         // 默认时间范围：最近30天
-        if ((bool) empty($filters['start_date']) && empty($filters['end_date'])) {
+        if ((!isset($filters['start_date']) || '' === $filters['start_date']) && (!isset($filters['end_date']) || '' === $filters['end_date'])) {
             $endDate = new \DateTime();
             $startDate = (clone $endDate)->modify('-30 days');
             $filters['start_date'] = $startDate->format('Y-m-d');
             $filters['end_date'] = $endDate->format('Y-m-d');
         }
 
-        // 机构条件
+        return $filters;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extractInstitutionFilters(Request $request): array
+    {
+        $filters = [];
+
         if ($request->query->has('institution_id')) {
             $filters['institution_id'] = $request->query->get('institution_id');
         }
         if ($request->query->has('institution_ids')) {
-            $filters['institution_ids'] = explode(',', $request->query->get('institution_ids'));
+            $institutionIds = $request->query->get('institution_ids');
+            if (is_string($institutionIds) && '' !== $institutionIds) {
+                $filters['institution_ids'] = explode(',', $institutionIds);
+            }
         }
 
-        // 区域条件
+        return $filters;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extractLocationFilters(Request $request): array
+    {
+        $filters = [];
+
         if ($request->query->has('region')) {
             $filters['region'] = $request->query->get('region');
         }
@@ -94,7 +131,16 @@ class IndexController extends AbstractController
             $filters['city'] = $request->query->get('city');
         }
 
-        // 年龄条件
+        return $filters;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extractDemographicFilters(Request $request): array
+    {
+        $filters = [];
+
         if ($request->query->has('age_group')) {
             $filters['age_group'] = $request->query->get('age_group');
         }

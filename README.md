@@ -1,6 +1,32 @@
 # TrainSupervisorBundle
 
+[![PHP Version](https://img.shields.io/badge/php-8.1%2B-blue.svg)](https://php.net)
+[![Symfony Version](https://img.shields.io/badge/symfony-6.4%2B-green.svg)](https://symfony.com)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)]()
+
+[English](README.md) | [中文](README.zh-CN.md)
+
 培训监督管理包 - 为安全生产培训系统提供全面的培训监督管理功能。
+
+## 目录
+
+- [功能特性](#功能特性)
+- [环境要求](#环境要求)
+- [安装](#安装)
+- [配置](#配置)
+- [使用指南](#使用指南)
+- [高级用法](#高级用法)
+- [命令行工具](#命令行工具)
+- [API 接口](#api-接口)
+- [数据模型](#数据模型)
+- [测试](#测试)
+- [开发指南](#开发指南)
+- [许可证](#许可证)
+- [支持](#支持)
+- [更新日志](#更新日志)
+- [致谢](#致谢)
 
 ## 功能特性
 
@@ -22,19 +48,19 @@
 - 完整的单元测试覆盖
 - 符合 AQ8011-2023 监督要求
 
-## 安装
-
-### 环境要求
+## 环境要求
 
 - PHP 8.2+
 - Symfony 6.4+
 - MySQL 8.0+
 - Composer
 
+## 安装
+
 ### 通过 Composer 安装
 
 ```bash
-composer require aqacms/train-supervisor-bundle
+composer require tourze/train-supervisor-bundle
 ```
 
 ### 注册 Bundle
@@ -44,7 +70,7 @@ composer require aqacms/train-supervisor-bundle
 ```php
 return [
     // ...
-    Aqacms\TrainSupervisorBundle\TrainSupervisorBundle::class => ['all' => true],
+    Tourze\TrainSupervisorBundle\TrainSupervisorBundle::class => ['all' => true],
 ];
 ```
 
@@ -91,20 +117,22 @@ train_supervisor:
 ```yaml
 easy_admin:
     entities:
-        - Aqacms\TrainSupervisorBundle\Entity\SupervisionPlan
-        - Aqacms\TrainSupervisorBundle\Entity\SupervisionInspection
-        - Aqacms\TrainSupervisorBundle\Entity\QualityAssessment
-        - Aqacms\TrainSupervisorBundle\Entity\SupervisionReport
-        - Aqacms\TrainSupervisorBundle\Entity\ProblemTracking
-        - Aqacms\TrainSupervisorBundle\Entity\Supervisor
+        - Tourze\TrainSupervisorBundle\Entity\SupervisionPlan
+        - Tourze\TrainSupervisorBundle\Entity\SupervisionInspection
+        - Tourze\TrainSupervisorBundle\Entity\QualityAssessment
+        - Tourze\TrainSupervisorBundle\Entity\SupervisionReport
+        - Tourze\TrainSupervisorBundle\Entity\ProblemTracking
+        - Tourze\TrainSupervisorBundle\Entity\Supervisor
 ```
 
 ## 使用指南
 
-### 创建监督计划
+### 基础使用
+
+#### 创建监督计划
 
 ```php
-use Aqacms\TrainSupervisorBundle\Service\SupervisionPlanService;
+use Tourze\TrainSupervisorBundle\Service\SupervisionPlanService;
 
 $planService = $container->get(SupervisionPlanService::class);
 
@@ -124,10 +152,10 @@ $planData = [
 $plan = $planService->createPlan($planData);
 ```
 
-### 执行监督检查
+#### 执行监督检查
 
 ```php
-use Aqacms\TrainSupervisorBundle\Service\InspectionService;
+use Tourze\TrainSupervisorBundle\Service\InspectionService;
 
 $inspectionService = $container->get(InspectionService::class);
 
@@ -145,10 +173,10 @@ $inspection = $inspectionService->createInspection($inspectionData);
 $inspectionService->executeInspection($inspection);
 ```
 
-### 生成监督报告
+#### 生成监督报告
 
 ```php
-use Aqacms\TrainSupervisorBundle\Service\ReportService;
+use Tourze\TrainSupervisorBundle\Service\ReportService;
 
 $reportService = $container->get(ReportService::class);
 
@@ -163,9 +191,103 @@ $reportData = [
 $report = $reportService->generateReport($reportData);
 ```
 
+## 高级用法
+
+### 自定义异常检测器
+
+你可以创建自定义的异常检测器来扩展系统的异常检测能力：
+
+```php
+use Tourze\TrainSupervisorBundle\Service\AnomalyDetector\AnomalyDetectorInterface;
+
+class CustomAnomalyDetector implements AnomalyDetectorInterface
+{
+    public function detect(\DateTime $startDate, \DateTime $endDate, array $thresholds): array
+    {
+        // 实现自定义检测逻辑
+        return $anomalies;
+    }
+
+    public function getType(): string
+    {
+        return 'custom';
+    }
+}
+```
+
+在服务配置中注册检测器：
+
+```yaml
+services:
+    App\Service\CustomAnomalyDetector:
+        tags: ['train_supervisor.anomaly_detector']
+```
+
+### 扩展质量评估
+
+通过实现评估接口来添加自定义评估标准：
+
+```php
+use Tourze\TrainSupervisorBundle\Service\QualityAssessmentService;
+
+class CustomAssessmentService extends QualityAssessmentService
+{
+    protected function calculateCustomScore(array $data): float
+    {
+        // 自定义评分算法
+        return $score;
+    }
+}
+```
+
+### 自定义报告模板
+
+创建自定义报告模板：
+
+```php
+use Tourze\TrainSupervisorBundle\Service\ReportService;
+
+$reportService = $container->get(ReportService::class);
+
+// 使用自定义模板
+$report = $reportService->generateReport($data, [
+    'template' => 'custom_template.html.twig',
+    'format' => 'pdf',
+    'options' => ['custom_option' => 'value']
+]);
+```
+
+### 事件监听器
+
+监听系统事件来扩展功能：
+
+```php
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Tourze\TrainSupervisorBundle\Event\SupervisionPlanCreatedEvent;
+
+class SupervisionEventSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            SupervisionPlanCreatedEvent::class => 'onPlanCreated',
+        ];
+    }
+
+    public function onPlanCreated(SupervisionPlanCreatedEvent $event): void
+    {
+        // 处理计划创建事件
+        $plan = $event->getPlan();
+        // 自定义逻辑
+    }
+}
+```
+
 ## 命令行工具
 
-### 执行监督计划
+### 计划管理命令
+
+#### 执行监督计划
 
 ```bash
 # 执行所有活跃的监督计划
@@ -178,7 +300,9 @@ php bin/console train:supervision:execute-plans --plan-id=123
 php bin/console train:supervision:execute-plans --dry-run
 ```
 
-### 生成日常监督数据
+### 数据管理命令
+
+#### 生成日常监督数据
 
 ```bash
 # 生成今日监督数据
@@ -188,7 +312,9 @@ php bin/console train:supervision:daily-data
 php bin/console train:supervision:daily-data --date=2024-06-01
 ```
 
-### 生成监督报告
+### 报告管理命令
+
+#### 生成监督报告
 
 ```bash
 # 生成月度报告
@@ -198,7 +324,9 @@ php bin/console train:supervision:generate-report --type=monthly
 php bin/console train:supervision:generate-report --type=annual --year=2024
 ```
 
-### 质量评估
+### 质量管理命令
+
+#### 质量评估
 
 ```bash
 # 执行质量评估
@@ -208,7 +336,7 @@ php bin/console train:supervision:quality-assessment
 php bin/console train:supervision:quality-assessment --institution-id=123
 ```
 
-### 异常检测
+#### 异常检测
 
 ```bash
 # 执行异常检测
@@ -220,7 +348,9 @@ php bin/console train:supervision:anomaly-detection --type=quality
 
 ## API 接口
 
-### 监督计划 API
+### RESTful API
+
+#### 监督计划 API
 
 ```php
 // 获取监督计划列表
@@ -245,7 +375,7 @@ POST /api/supervision-plans/{id}/activate
 POST /api/supervision-plans/{id}/complete
 ```
 
-### 监督检查 API
+#### 监督检查 API
 
 ```php
 // 获取检查列表
@@ -263,7 +393,9 @@ POST /api/inspections/{id}/complete
 
 ## 数据模型
 
-### 监督计划 (SupervisionPlan)
+### 实体定义
+
+#### 监督计划 (SupervisionPlan)
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -284,7 +416,7 @@ POST /api/inspections/{id}/complete
 | resources | json | 资源配置 |
 | criteria | json | 评估标准 |
 
-### 监督检查 (SupervisionInspection)
+#### 监督检查 (SupervisionInspection)
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -307,7 +439,9 @@ POST /api/inspections/{id}/complete
 
 ## 测试
 
-### 运行测试
+### 测试执行
+
+#### 运行测试
 
 ```bash
 # 运行所有测试
@@ -322,7 +456,7 @@ php bin/phpunit tests/Command
 php bin/phpunit --coverage-html coverage
 ```
 
-### 测试覆盖率
+#### 测试覆盖率
 
 当前测试覆盖率：
 
@@ -333,7 +467,9 @@ php bin/phpunit --coverage-html coverage
 
 ## 开发指南
 
-### 代码规范
+### 开发规范
+
+#### 代码规范
 
 - 遵循 PSR-1、PSR-4、PSR-12 规范
 - 使用 PHP 8.2+ 特性
@@ -341,7 +477,7 @@ php bin/phpunit --coverage-html coverage
 - 方法名使用驼峰命名法
 - 常量使用大写字母和下划线
 
-### 贡献指南
+#### 贡献指南
 
 1. Fork 项目
 2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
@@ -349,11 +485,13 @@ php bin/phpunit --coverage-html coverage
 4. 推送到分支 (`git push origin feature/amazing-feature`)
 5. 创建 Pull Request
 
-### 开发环境设置
+### 开发环境
+
+#### 开发环境设置
 
 ```bash
 # 克隆项目
-git clone https://github.com/aqacms/train-supervisor-bundle.git
+git clone https://github.com/tourze/train-supervisor-bundle.git
 
 # 安装依赖
 composer install
@@ -374,9 +512,9 @@ php bin/phpstan analyse
 
 ## 支持
 
-- 文档：[https://docs.aqacms.com/train-supervisor-bundle](https://docs.aqacms.com/train-supervisor-bundle)
-- 问题反馈：[GitHub Issues](https://github.com/aqacms/train-supervisor-bundle/issues)
-- 邮件支持：support@aqacms.com
+- 文档：[https://docs.tourze.com/train-supervisor-bundle](https://docs.tourze.com/train-supervisor-bundle)
+- 问题反馈：[GitHub Issues](https://github.com/tourze/train-supervisor-bundle/issues)
+- 邮件支持：support@tourze.com
 
 ## 更新日志
 

@@ -2,13 +2,20 @@
 
 namespace Tourze\TrainSupervisorBundle\Tests\Exception;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitBase\AbstractExceptionTestCase;
 use Tourze\TrainSupervisorBundle\Exception\SupervisionPlanNotFoundException;
 
-class SupervisionPlanNotFoundExceptionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(SupervisionPlanNotFoundException::class)]
+final class SupervisionPlanNotFoundExceptionTest extends AbstractExceptionTestCase
 {
-    public function testExceptionExists(): void
+    public function testExceptionCanBeInstantiated(): void
     {
-        $this->assertTrue(class_exists(SupervisionPlanNotFoundException::class));
+        $exception = new SupervisionPlanNotFoundException('Test message');
+        $this->assertInstanceOf(SupervisionPlanNotFoundException::class, $exception);
+        $this->assertEquals('Test message', $exception->getMessage());
     }
 }

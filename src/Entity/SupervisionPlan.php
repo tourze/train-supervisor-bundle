@@ -4,15 +4,15 @@ namespace Tourze\TrainSupervisorBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\TrainSupervisorBundle\Repository\SupervisionPlanRepository;
 
 /**
  * 监督计划实体
- * 用于管理培训监督计划的制定、执行和跟踪
+ * 用于管理培训监督计划的制定、执行和跟踪.
  */
 #[ORM\Entity(repositoryClass: SupervisionPlanRepository::class)]
 #[ORM\Table(name: 'job_training_supervision_plan', options: ['comment' => '监督计划'])]
@@ -21,44 +21,64 @@ class SupervisionPlan implements \Stringable
     use TimestampableAware;
     use SnowflakeKeyAware;
 
+    #[Assert\NotBlank(message: '计划名称不能为空')]
+    #[Assert\Length(max: 255, maxMessage: '计划名称不能超过255个字符')]
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '计划名称'])]
     private string $planName;
 
+    #[Assert\NotBlank(message: '计划类型不能为空')]
+    #[Assert\Length(max: 50, maxMessage: '计划类型不能超过50个字符')]
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '计划类型：定期、专项、随机'])]
     private string $planType;
 
+    #[Assert\NotNull(message: '计划开始日期不能为空')]
+    #[Assert\Type(type: \DateTimeInterface::class)]
     #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '计划开始日期'])]
     private \DateTimeInterface $planStartDate;
 
+    #[Assert\NotNull(message: '计划结束日期不能为空')]
+    #[Assert\Type(type: \DateTimeInterface::class)]
     #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '计划结束日期'])]
     private \DateTimeInterface $planEndDate;
 
+    /**
+     * @var array<int, string>
+     */
+    #[Assert\Type(type: 'array')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '监督范围'])]
     private array $supervisionScope = [];
 
+    /**
+     * @var array<int, string>
+     */
+    #[Assert\Type(type: 'array')]
     #[ORM\Column(type: Types::JSON, options: ['comment' => '监督项目'])]
     private array $supervisionItems = [];
 
+    #[Assert\NotBlank(message: '监督人不能为空')]
+    #[Assert\Length(max: 100, maxMessage: '监督人不能超过100个字符')]
     #[ORM\Column(type: Types::STRING, length: 100, options: ['comment' => '监督人'])]
     private string $supervisor;
 
+    #[Assert\NotBlank(message: '计划状态不能为空')]
+    #[Assert\Length(max: 50, maxMessage: '计划状态不能超过50个字符')]
     #[IndexColumn]
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '计划状态'])]
     private string $planStatus = '待执行';
 
+    #[Assert\Type(type: 'string')]
+    #[Assert\Length(max: 65535, maxMessage: '备注信息过长')]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '备注信息'])]
     private ?string $remarks = null;
-
 
     public function getPlanName(): string
     {
         return $this->planName;
     }
 
-    public function setPlanName(string $planName): static
+    public function setPlanName(string $planName): void
     {
         $this->planName = $planName;
-        return $this;
     }
 
     public function getPlanType(): string
@@ -66,10 +86,9 @@ class SupervisionPlan implements \Stringable
         return $this->planType;
     }
 
-    public function setPlanType(string $planType): static
+    public function setPlanType(string $planType): void
     {
         $this->planType = $planType;
-        return $this;
     }
 
     public function getPlanStartDate(): \DateTimeInterface
@@ -77,10 +96,9 @@ class SupervisionPlan implements \Stringable
         return $this->planStartDate;
     }
 
-    public function setPlanStartDate(\DateTimeInterface $planStartDate): static
+    public function setPlanStartDate(\DateTimeInterface $planStartDate): void
     {
         $this->planStartDate = $planStartDate;
-        return $this;
     }
 
     public function getPlanEndDate(): \DateTimeInterface
@@ -88,32 +106,41 @@ class SupervisionPlan implements \Stringable
         return $this->planEndDate;
     }
 
-    public function setPlanEndDate(\DateTimeInterface $planEndDate): static
+    public function setPlanEndDate(\DateTimeInterface $planEndDate): void
     {
         $this->planEndDate = $planEndDate;
-        return $this;
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getSupervisionScope(): array
     {
         return $this->supervisionScope;
     }
 
-    public function setSupervisionScope(array $supervisionScope): static
+    /**
+     * @param array<int, string> $supervisionScope
+     */
+    public function setSupervisionScope(array $supervisionScope): void
     {
         $this->supervisionScope = $supervisionScope;
-        return $this;
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getSupervisionItems(): array
     {
         return $this->supervisionItems;
     }
 
-    public function setSupervisionItems(array $supervisionItems): static
+    /**
+     * @param array<int, string> $supervisionItems
+     */
+    public function setSupervisionItems(array $supervisionItems): void
     {
         $this->supervisionItems = $supervisionItems;
-        return $this;
     }
 
     public function getSupervisor(): string
@@ -121,10 +148,9 @@ class SupervisionPlan implements \Stringable
         return $this->supervisor;
     }
 
-    public function setSupervisor(string $supervisor): static
+    public function setSupervisor(string $supervisor): void
     {
         $this->supervisor = $supervisor;
-        return $this;
     }
 
     public function getPlanStatus(): string
@@ -132,10 +158,9 @@ class SupervisionPlan implements \Stringable
         return $this->planStatus;
     }
 
-    public function setPlanStatus(string $planStatus): static
+    public function setPlanStatus(string $planStatus): void
     {
         $this->planStatus = $planStatus;
-        return $this;
     }
 
     // Alias for backward compatibility
@@ -149,10 +174,9 @@ class SupervisionPlan implements \Stringable
         return $this->remarks;
     }
 
-    public function setRemarks(?string $remarks): static
+    public function setRemarks(?string $remarks): void
     {
         $this->remarks = $remarks;
-        return $this;
     }
 
     /**
@@ -160,7 +184,7 @@ class SupervisionPlan implements \Stringable
      */
     public function isActive(): bool
     {
-        return in_array($this->planStatus, ['待执行', '执行中']);
+        return in_array($this->planStatus, ['待执行', '执行中', '激活'], true);
     }
 
     /**
@@ -172,11 +196,13 @@ class SupervisionPlan implements \Stringable
     }
 
     /**
-     * 获取计划持续天数
+     * 获取计划持续天数.
      */
     public function getDurationDays(): int
     {
-        return $this->planStartDate->diff($this->planEndDate)->days;
+        $days = $this->planStartDate->diff($this->planEndDate)->days;
+
+        return false === $days ? 0 : $days;
     }
 
     public function __toString(): string

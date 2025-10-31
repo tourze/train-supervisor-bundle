@@ -11,13 +11,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Tourze\TrainSupervisorBundle\Service\LearningStatisticsService;
 
 /**
- * 机构详细统计控制器
+ * 机构详细统计控制器.
  */
-class InstitutionDetailController extends AbstractController
+final class InstitutionDetailController extends AbstractController
 {
     public function __construct(
         private readonly LearningStatisticsService $statisticsService,
-    ) {}
+    ) {
+    }
 
     #[Route(path: '/admin/learning-statistics/institution/{id}', name: 'admin_learning_statistics_institution', methods: ['GET'])]
     public function __invoke(string $id, Request $request): Response
@@ -36,12 +37,15 @@ class InstitutionDetailController extends AbstractController
             ]);
         } catch (\Throwable $e) {
             $this->addFlash('danger', '获取机构统计数据失败：' . $e->getMessage());
+
             return $this->redirectToRoute('admin_learning_statistics_index');
         }
     }
 
     /**
-     * 从请求中提取过滤条件
+     * 从请求中提取过滤条件.
+     *
+     * @return array<string, mixed>
      */
     private function extractFilters(Request $request): array
     {
@@ -56,7 +60,7 @@ class InstitutionDetailController extends AbstractController
         }
 
         // 默认时间范围：最近30天
-        if ((bool) empty($filters['start_date']) && empty($filters['end_date'])) {
+        if ((!isset($filters['start_date']) || '' === $filters['start_date']) && (!isset($filters['end_date']) || '' === $filters['end_date'])) {
             $endDate = new \DateTime();
             $startDate = (clone $endDate)->modify('-30 days');
             $filters['start_date'] = $startDate->format('Y-m-d');

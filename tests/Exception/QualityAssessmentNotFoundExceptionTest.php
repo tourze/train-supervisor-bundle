@@ -2,13 +2,20 @@
 
 namespace Tourze\TrainSupervisorBundle\Tests\Exception;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitBase\AbstractExceptionTestCase;
 use Tourze\TrainSupervisorBundle\Exception\QualityAssessmentNotFoundException;
 
-class QualityAssessmentNotFoundExceptionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(QualityAssessmentNotFoundException::class)]
+final class QualityAssessmentNotFoundExceptionTest extends AbstractExceptionTestCase
 {
-    public function testExceptionExists(): void
+    public function testExceptionCanBeInstantiated(): void
     {
-        $this->assertTrue(class_exists(QualityAssessmentNotFoundException::class));
+        $exception = new QualityAssessmentNotFoundException('Test message');
+        $this->assertInstanceOf(QualityAssessmentNotFoundException::class, $exception);
+        $this->assertEquals('Test message', $exception->getMessage());
     }
 }
