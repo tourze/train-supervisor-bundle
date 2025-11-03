@@ -14,7 +14,7 @@ final class TrainSupervisorExceptionTest extends AbstractExceptionTestCase
 {
     public function testExceptionCanBeInstantiated(): void
     {
-        $exception = new class ('Test message') extends TrainSupervisorException {
+        $exception = new class('Test message') extends TrainSupervisorException {
         };
         $this->assertInstanceOf(TrainSupervisorException::class, $exception);
         $this->assertEquals('Test message', $exception->getMessage());
@@ -22,14 +22,14 @@ final class TrainSupervisorExceptionTest extends AbstractExceptionTestCase
 
     public function testExceptionExtendsRuntimeException(): void
     {
-        $exception = new class ('Test message') extends TrainSupervisorException {
+        $exception = new class('Test message') extends TrainSupervisorException {
         };
         $this->assertInstanceOf(\RuntimeException::class, $exception);
     }
 
     public function testExceptionCanBeCreatedWithCode(): void
     {
-        $exception = new class ('Test message', 500) extends TrainSupervisorException {
+        $exception = new class('Test message', 500) extends TrainSupervisorException {
         };
         $this->assertEquals(500, $exception->getCode());
     }
@@ -37,7 +37,7 @@ final class TrainSupervisorExceptionTest extends AbstractExceptionTestCase
     public function testExceptionCanBeCreatedWithPreviousException(): void
     {
         $previous = new \Exception('Previous exception');
-        $exception = new class ('Test message', 0, $previous) extends TrainSupervisorException {
+        $exception = new class('Test message', 0, $previous) extends TrainSupervisorException {
         };
         $this->assertSame($previous, $exception->getPrevious());
     }

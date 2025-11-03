@@ -10,9 +10,9 @@ use Tourze\BundleDependency\BundleDependencyInterface;
 use Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle;
 use Tourze\DoctrineSnowflakeBundle\DoctrineSnowflakeBundle;
 use Tourze\DoctrineTimestampBundle\DoctrineTimestampBundle;
+use Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle;
 use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
 use Tourze\TrainCourseBundle\TrainCourseBundle;
-use Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle;
 
 class TrainSupervisorBundle extends Bundle implements BundleDependencyInterface
 {
