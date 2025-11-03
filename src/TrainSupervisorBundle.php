@@ -12,6 +12,7 @@ use Tourze\DoctrineSnowflakeBundle\DoctrineSnowflakeBundle;
 use Tourze\DoctrineTimestampBundle\DoctrineTimestampBundle;
 use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
 use Tourze\TrainCourseBundle\TrainCourseBundle;
+use Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle;
 
 class TrainSupervisorBundle extends Bundle implements BundleDependencyInterface
 {
@@ -26,6 +27,7 @@ class TrainSupervisorBundle extends Bundle implements BundleDependencyInterface
             DoctrineTimestampBundle::class => ['all' => true],
             RoutingAutoLoaderBundle::class => ['all' => true],
             TrainCourseBundle::class => ['all' => true],
+            EasyAdminMenuBundle::class => ['all' => true],
         ];
     }
 }
