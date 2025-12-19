@@ -211,7 +211,6 @@ class SupplierCrudControllerTest extends AbstractTrainSupervisorTestCase
     #[\ReturnTypeWillChange]
     protected function getControllerService(): AbstractCrudController
     {
-        /** @phpstan-ignore-next-line */
         return self::getService(SupplierCrudController::class);
     }
 

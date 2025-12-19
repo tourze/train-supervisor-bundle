@@ -299,7 +299,6 @@ class SupervisionInspectionCrudControllerTest extends AbstractTrainSupervisorTes
     #[\ReturnTypeWillChange]
     protected function getControllerService(): AbstractCrudController
     {
-        /** @phpstan-ignore-next-line */
         return self::getService(SupervisionInspectionCrudController::class);
     }
 

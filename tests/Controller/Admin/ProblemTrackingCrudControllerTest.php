@@ -509,7 +509,6 @@ class ProblemTrackingCrudControllerTest extends AbstractTrainSupervisorTestCase
     #[\ReturnTypeWillChange]
     protected function getControllerService(): AbstractCrudController
     {
-        /** @phpstan-ignore-next-line */
         return self::getService(ProblemTrackingCrudController::class);
     }
 
